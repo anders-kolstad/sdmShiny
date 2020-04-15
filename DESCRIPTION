@@ -1,13 +1,18 @@
 Package: sdmShiny
-Title: What the Package Does (One Line, Title Case)
+Title: Disseminating SDM results with an interactive Shiny application
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
+Authors@R: c(
+    person(given = "Anders L.",
+           family = "Kolstad",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "anders.kolstad@ntnu.com"
+           ),
+    person(given = "James D. M.",
+           family = "Speed",
+           role = c("aut"),
+           email = "james.speed@ntnu.com"
+           ))
+Description: This work is part of the DISSENTANGLE project.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
     pick a license
 Encoding: UTF-8
