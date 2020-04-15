@@ -21,7 +21,7 @@ head(sp)
 # define as spaTIAL POINTS
 sp::coordinates(sp) <- ~lon + lat
 head(sp)
-
+mapview::mapview(sp)
 
 # get env data
 bio <- raster::getData('worldclim', var='bio',res=10)
