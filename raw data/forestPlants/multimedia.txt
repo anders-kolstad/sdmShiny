@@ -1,0 +1,75 @@
+gbifID	type	format	identifier	references	title	description	created	creator	contributor	publisher	audience	source	license	rightsHolder
+1933315222	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/48d3a090-38f7-4986-8945-217b5016a47a_image.jpg				0001-01-01T00:00:00Z							
+1933315222	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/655cab2d-dae9-49fe-8e65-ac5035a8932c_image.jpg				0001-01-01T00:00:00Z							
+1933315222	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/8ffa7a26-b5b7-420d-badc-07e048b2a6dc_image.jpg				0001-01-01T00:00:00Z							
+1933315222	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/c64c06c6-b847-404a-9772-79552414b744_image.jpg				0001-01-01T00:00:00Z							
+1933111693	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/5978780f-1d6b-4e8d-9fab-7f185b660bc9_image.jpg				0001-01-01T00:00:00Z							
+1933111693	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/8d668275-d465-409c-acaa-ab7bdd1234ba_image.jpg				0001-01-01T00:00:00Z							
+1928595338	StillImage	image/jpeg	http://sweetgum.nybg.org/images3/665/660/01319240.jpg					The New York Botanical Garden					https://creativecommons.org/licenses/by/4.0/	
+1890269680	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2018/10/45f8f4aa-adec-4b52-bec8-6aae99ada2fc_image.jpg			Mose ble funnet på fuktig skråberg i underkant av torvmosehylle og med en utbredelse på ca. 1 m2.	0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/2c426b51-f9cc-4dae-8818-4bb8119955e6_image.jpg			Rødbrune tuer med fossegrimemose forekommer langt oppover på berget. Bekk danner småfosser til høyre	0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/424bc087-cacd-4f42-a9e6-de2b295b0611_image.jpg				0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/7cfa8e9d-a989-47ff-b069-776cd272ced9_image.jpg				0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/bfb73fa9-52ec-467e-9242-9acc3de0bce0_image.jpg			Fossegrimemose synlig som rødbrune tuer på berget	0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/c6974c6a-5336-4331-b46c-5aac2385deb3_image.jpg				0001-01-01T00:00:00Z							
+1825332347	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/d8115a40-4205-40f6-9d12-f05c7607f5ef_image.jpg			Fossegrimemose synlig som rødbrune tuer på berget	0001-01-01T00:00:00Z							
+1824935259	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/1c9a163a-a37d-41ed-b08e-44e4f142aced_image.jpg				0001-01-01T00:00:00Z							
+1824935259	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/b11c678e-cb9c-438f-8e1f-33a373b35fc7_image.jpg				0001-01-01T00:00:00Z							
+1824935259	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/e2ce0d5c-0296-421e-9fae-cdae718f9fd5_image.jpg				0001-01-01T00:00:00Z							
+1824935259	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/10/e301d6d3-8efe-4b81-b537-e30e2be39740_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/1bb4ab94-7cfb-490d-951b-a4076eb80db5_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/1e892029-ad75-412a-afdb-711c65e68fd0_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/2bf0be0c-db76-4350-a928-81e16f5f5c25_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/7dff80e6-9736-4d68-bab9-b7cc1a3916e9_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/aae81e25-0dfd-435f-8fc7-6eb5b4e60bb8_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/d7620538-3d22-4728-92b4-7a22169b5e68_image.jpg				0001-01-01T00:00:00Z							
+1797792519	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/ed5725f7-a943-4eb4-b63a-33a3ca2b1976_image.jpg				0001-01-01T00:00:00Z							
+1797792497	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/156ea9ce-120f-4acd-8455-9471511f59c9_image.jpg				0001-01-01T00:00:00Z							
+1797792485	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/bb7610c9-d1d8-483a-bad7-4208ed23cc64_image.jpg				0001-01-01T00:00:00Z							
+1797792485	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/df548516-9555-4153-803b-164852a91cfa_image.jpg				0001-01-01T00:00:00Z							
+1797792485	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/fb59009a-be64-455b-890f-834a25fbb991_image.jpg				0001-01-01T00:00:00Z							
+1797792474	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/0e77c5e2-841b-4a65-aa15-c86fb42336f6_image.jpg				0001-01-01T00:00:00Z							
+1797792474	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/be692d0d-a291-4a15-8f8c-ab65befe6f39_image.jpg				0001-01-01T00:00:00Z							
+1797792469	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/5173e3d9-b6ba-424a-8445-47ebca40d21e_image.jpg				0001-01-01T00:00:00Z							
+1797792469	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2017/7/be05974a-83fe-4567-964f-4f43118f7eec_image.jpg				0001-01-01T00:00:00Z							
+1323172795	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2016/8/0345fd78-4524-4c48-bc8b-e49aaef989a5_image.jpg				0001-01-01T00:00:00Z							
+1241190196	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2013/large/311078.jpg				0001-01-01T00:00:00Z							
+1241190196	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2013/large/311079.jpg				0001-01-01T00:00:00Z							
+1241185076	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/457361.jpg				0001-01-01T00:00:00Z							
+1241156472	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2013/large/334925.jpg				0001-01-01T00:00:00Z							
+1241156419	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/457359.jpg				0001-01-01T00:00:00Z							
+1241156419	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/457360.jpg				0001-01-01T00:00:00Z							
+1241155285	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2010/large/135935.jpg				0001-01-01T00:00:00Z							
+1241154531	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2011/large/223652.jpg				0001-01-01T00:00:00Z							
+1241153977	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/456812.jpg				0001-01-01T00:00:00Z							
+1241153977	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/456813.jpg				0001-01-01T00:00:00Z							
+1241153977	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/456814.jpg				0001-01-01T00:00:00Z							
+1241153977	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/456815.jpg			Lokalitet for fossegrimemose. Berg i nedkant av bergvegg	0001-01-01T00:00:00Z							
+1241138480	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2012/large/256721.jpg				0001-01-01T00:00:00Z							
+1241136371	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2015/large/486076.jpg				0001-01-01T00:00:00Z							
+1241135895	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/433405.jpg				0001-01-01T00:00:00Z							
+1241135895	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/433406.jpg				0001-01-01T00:00:00Z							
+1241135895	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/433407.jpg				0001-01-01T00:00:00Z							
+1241135895	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/433408.jpg				0001-01-01T00:00:00Z							
+1241135895	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/433409.jpg				0001-01-01T00:00:00Z							
+1241135876	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/456823.jpg				0001-01-01T00:00:00Z							
+1241094491	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/393763.jpg				0001-01-01T00:00:00Z							
+1241094491	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/393767.jpg				0001-01-01T00:00:00Z							
+1241094491	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/393768.jpg				0001-01-01T00:00:00Z							
+1241094491	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/plants/2014/large/393780.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/0b423b5f-8c82-4558-97c2-6e2adf4fd354_image.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/12a2fe56-cf01-489e-9ca2-1c1675bec617_image.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/1af4e980-affc-4176-a8ba-90429ae81a3b_image.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/210af124-1931-4bd7-bb3c-94a68c89b75a_image.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/cc6bd85e-9436-4356-bb84-0ca528c41247_image.jpg				0001-01-01T00:00:00Z							
+1236547100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/e6903e86-bcf8-40f7-a5c9-d1ddf3f8b8c2_image.jpg				0001-01-01T00:00:00Z							
+1236547084	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/485b26bd-fd4d-41ff-8502-7dbd559a36ae_image.jpg				0001-01-01T00:00:00Z							
+1236547084	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/7e85532e-f365-4b19-86df-36b937d98259_image.jpg				0001-01-01T00:00:00Z							
+1236508137	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/0b086938-fa16-4362-9780-916a87ca5d24_image.jpg				0001-01-01T00:00:00Z							
+1236508137	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/18395e02-7a08-4d46-98cf-cb3f1d79eeda_image.jpg				0001-01-01T00:00:00Z							
+1236508137	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/19528110-afa8-4e8a-876b-7d8b5be245e0_image.jpg				0001-01-01T00:00:00Z							
+1236508137	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/a07da3fa-bfdb-4553-a8c5-73aa972815fe_image.jpg				0001-01-01T00:00:00Z							
+1236508137	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/c3b2ac7f-32af-41f8-a39e-0c74bc0e2386_image.jpg				0001-01-01T00:00:00Z							
+1236508100	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/a4949f58-8573-46a7-9031-c950a863f57a_image.jpg			Nordvendt fukthei hvor praktdraugmose forekommer relativt rikelig i forgrunnen	0001-01-01T00:00:00Z							
+1236508089	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/a5c52a4d-e73a-48ec-879a-8329e162c553_image.jpg				0001-01-01T00:00:00Z							
+1236508089	StillImage	image/jpeg	http://www.artsobservasjoner.no/MediaLibrary/2015/10/e0d7281e-e9ae-4d69-b8a3-83ca89738dfc_image.jpg				0001-01-01T00:00:00Z							

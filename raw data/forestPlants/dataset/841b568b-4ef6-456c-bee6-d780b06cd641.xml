@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd"
+        packageId="841b568b-4ef6-456c-bee6-d780b06cd641"  system="http://gbif.org" scope="system"
+  xml:lang="en">
+
+<dataset>
+      <alternateIdentifier>10.15468/ulyuhk</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=kystfuruskoger_2015</alternateIdentifier>
+        <alternateIdentifier>841b568b-4ef6-456c-bee6-d780b06cd641</alternateIdentifier>
+        <alternateIdentifier>http://data.gbif.no/ipt/resource?r=kystfuruskoger_2015</alternateIdentifier>
+    <title>Kystfuruskoger 2015</title>
+    <creator>
+    <individualName>
+<givenName>Per Gerhard</givenName>          <surName>Ihlen</surName>
+    </individualName>
+<electronicMailAddress>per.ihlen@asplanviak.no</electronicMailAddress>    </creator>
+    <metadataProvider>
+    <individualName>
+<givenName>Per Gerhard</givenName>          <surName>Ihlen</surName>
+    </individualName>
+<electronicMailAddress>per.ihlen@asplanviak.no</electronicMailAddress>    </metadataProvider>
+    <associatedParty>
+    <individualName>
+<givenName>Christian</givenName>          <surName>Svindseth</surName>
+    </individualName>
+<electronicMailAddress>christian.svindseth@nhm.uio.no</electronicMailAddress>    <role>USER</role>
+    </associatedParty>
+      <pubDate>
+      2018-07-09
+      </pubDate>
+    <language>ENGLISH</language>
+    <abstract>
+        <para>Data was collected as a part of a biodiversity survey of humid forests in northwestern Norway.</para>
+    </abstract>
+        <keywordSet>
+              <keyword>Occurrence</keyword>
+              <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+              <keyword>Observation</keyword>
+              <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+      <intellectualRights>
+        <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+      </intellectualRights>
+      <maintenance>
+          <description>
+              <para></para>
+          </description>
+          <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+      </maintenance>
+      <contact>
+    <individualName>
+<givenName>Per Gerhard</givenName>          <surName>Ihlen</surName>
+    </individualName>
+<electronicMailAddress>per.ihlen@asplanviak.no</electronicMailAddress>      </contact>
+
+</dataset>
+
+<additionalMetadata>
+    <metadata>
+      <gbif>
+        <dateStamp>2018-11-26T10:43:58Z</dateStamp>
+      <citation>Ihlen P G (2018). Kystfuruskoger 2015. Version 1.8. Asplan Viak AS. Occurrence dataset https://doi.org/10.15468/ulyuhk accessed via GBIF.org on 2018-11-26.</citation>
+        </gbif>
+    </metadata>
+</additionalMetadata>
+
+</eml:eml>

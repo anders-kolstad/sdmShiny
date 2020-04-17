@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd"
+        packageId="10.15468/dl.ydfbtt"  system="http://gbif.org" scope="system"
+  xml:lang="en">
+
+<dataset>
+        <alternateIdentifier>0008843-181108115102211</alternateIdentifier>
+    <title>GBIF Occurrence Download 10.15468/dl.ydfbtt</title>
+    <creator>
+    <individualName>
+          <surName>GBIF Download Service</surName>
+    </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>    </creator>
+    <metadataProvider>
+    <individualName>
+          <surName>GBIF Download Service</surName>
+    </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>    </metadataProvider>
+      <pubDate>
+      2018-11-26
+      </pubDate>
+    <language>ENGLISH</language>
+    <abstract>
+        <para>A dataset containing all occurrences available in GBIF matching the query:
+TaxonKey: Tortula laureri Lindberg, 1864 or Herbertus stramineus (Dumort.) Trevis. or Fissidens exilis Hedwig, 1801 or Anastrophyllum joergensenii Schiffn. or Anastrophyllum donnianum (Hook.) Steph. 
+Country: Norway 
+HasCoordinate: TRUE
+The dataset includes records from the following constituent datasets. The full metadata for each constituent is also included in this archive:
+1 records from Kystfuruskoger 2015
+1 records from The New York Botanical Garden Herbarium (NY)
+1 records from Oskarshamn herbarium (OHN)
+1 records from HUCS - Herbário da Universidade de Caxias do Sul
+3 records from Herbarium of Umeå University (UME)
+4 records from Field Museum of Natural History (Botany) Bryophyte Collection
+6 records from Gothenburg Herbarium - General (GBIF:IH:GB:Herbarium)
+7 records from nnf_verdisetting_vestlandet
+9 records from Geographically tagged INSDC sequences
+24 records from Lund Botanical Museum (LD)
+103 records from Bryophyte Herbarium, Oslo (O-B)
+119 records from Norwegian Species Observation Service
+120 records from Moss herbarium, UiB
+121 records from Jordal
+192 records from BioFokus
+366 records from Bryophyte herbarium, NTNU University Museum
+</para>
+    </abstract>
+      <contact>
+    <individualName>
+          <surName>GBIF Download Service</surName>
+    </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>      </contact>
+
+</dataset>
+
+<additionalMetadata>
+    <metadata>
+      <gbif>
+        <dateStamp>2018-11-26T10:44:00Z</dateStamp>
+      <citation identifier="10.15468/dl.ydfbtt">GBIF Occurrence Download 10.15468/dl.ydfbtt</citation>
+              <physical>
+                  <objectName>Darwin Core Archive</objectName>
+                  <characterEncoding>UTF-8</characterEncoding>
+                  <dataFormat>
+                      <externallyDefinedFormat>
+                          <formatName>Darwin Core Archive</formatName>
+                      </externallyDefinedFormat>
+                  </dataFormat>
+                  <distribution>
+                      <online>
+                          <url function="download">http://api.gbif.org/v1/occurrence/download/request/0008843-181108115102211.zip</url>
+                      </online>
+                  </distribution>
+              </physical>
+        </gbif>
+    </metadata>
+</additionalMetadata>
+
+</eml:eml>

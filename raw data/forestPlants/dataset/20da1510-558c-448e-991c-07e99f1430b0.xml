@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd"
+        packageId="20da1510-558c-448e-991c-07e99f1430b0"  system="http://gbif.org" scope="system"
+  xml:lang="en">
+
+<dataset>
+      <alternateIdentifier>10.15468/ittsf0</alternateIdentifier>
+        <alternateIdentifier>20da1510-558c-448e-991c-07e99f1430b0</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=nnf_verdisetting_vestlandet</alternateIdentifier>
+    <title>nnf_verdisetting_vestlandet</title>
+    <creator>
+    <individualName>
+<givenName>Conrad</givenName>          <surName>Blanck</surName>
+    </individualName>
+<organizationName>Rådgivende Biologer AS</organizationName><positionName>Researcher</positionName>    <address>
+<deliveryPoint>Bredsgården</deliveryPoint><city>Bergen</city><administrativeArea>Hordaland</administrativeArea><postalCode>5003</postalCode><country>NORWAY</country>    </address>
+<phone>+47 92070805</phone><electronicMailAddress>conrad@radgivende-biologer.no</electronicMailAddress><onlineUrl>http://www.radgivende-biologer.no</onlineUrl>    </creator>
+    <creator>
+    <individualName>
+<givenName>Linn</givenName>          <surName>Eilertsen</surName>
+    </individualName>
+<organizationName>Rådgivende Biologer AS</organizationName><positionName>CEO</positionName>    <address>
+<deliveryPoint>Bredsgården</deliveryPoint><city>Bergen</city><administrativeArea>Hordaland</administrativeArea><postalCode>5003</postalCode><country>NORWAY</country>    </address>
+<phone>+47 41460197</phone><electronicMailAddress>conrad@radgivende-biologer.no</electronicMailAddress>    </creator>
+    <metadataProvider>
+    <individualName>
+<givenName>Conrad</givenName>          <surName>Blanck</surName>
+    </individualName>
+<organizationName>Rådgivende Biologer</organizationName><positionName>Researcher</positionName>    <address>
+<deliveryPoint>Bredsgården</deliveryPoint><city>Bergen</city><administrativeArea>Hordaland</administrativeArea><postalCode>5003</postalCode><country>NORWAY</country>    </address>
+<phone>+47 92070805</phone><electronicMailAddress>conrad@radgivende-biologer.no</electronicMailAddress><onlineUrl>http://www.radgivende-biologer.no</onlineUrl>    </metadataProvider>
+    <associatedParty>
+    <individualName>
+<givenName>Conrad</givenName>          <surName>Blanck</surName>
+    </individualName>
+<electronicMailAddress>conrad@radgivende-biologer.no</electronicMailAddress>    <role>USER</role>
+    </associatedParty>
+      <pubDate>
+      2018-07-09
+      </pubDate>
+    <language>ENGLISH</language>
+    <abstract>
+        <para>List contains mosses, lichens, and vascular plants found in the norwegian Black and Red list for Species, that were registered by observation during a nature type cartography project in various locations throughout Hordaland in western Norway.
+
+Habitat is given in nature types defined by the NiN description system.</para>
+    </abstract>
+        <keywordSet>
+              <keyword>Hordaland</keyword>
+              <keyword>Occurrence</keyword>
+              <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+              <keyword>Observation</keyword>
+              <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+      <intellectualRights>
+        <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+      </intellectualRights>
+      <coverage>
+            <geographicCoverage>
+                  <geographicDescription>Locations throughout Hordaland Fylke in Norway</geographicDescription>
+                  <boundingCoordinates>
+                      <westBoundingCoordinate>5.389</westBoundingCoordinate>
+                      <eastBoundingCoordinate>7.207</eastBoundingCoordinate>
+                      <northBoundingCoordinate>60.708</northBoundingCoordinate>
+                      <southBoundingCoordinate>59.883</southBoundingCoordinate>
+                  </boundingCoordinates>
+            </geographicCoverage>
+      </coverage>
+      <maintenance>
+          <description>
+              <para></para>
+          </description>
+          <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+      </maintenance>
+      <contact>
+    <individualName>
+<givenName>Conrad</givenName>          <surName>Blanck</surName>
+    </individualName>
+<organizationName>Rådgivende Biologer</organizationName><positionName>Researcher</positionName>    <address>
+<deliveryPoint>Bredsgården</deliveryPoint><city>Bergen</city><administrativeArea>Hordaland</administrativeArea><postalCode>5003</postalCode><country>NORWAY</country>    </address>
+<phone>+47 92070805</phone><electronicMailAddress>conrad@radgivende-biologer.no</electronicMailAddress><onlineUrl>http://www.radgivende-biologer.no</onlineUrl>      </contact>
+      <methods>
+            <methodStep>
+                <description>
+                    <para></para>
+                </description>
+            </methodStep>
+      </methods>
+
+      <project >
+          <title>Miljodir_naturtypekartlegging_2017</title>
+          <personnel>
+    <individualName>
+          <surName>Miljødirekoratet</surName>
+    </individualName>
+    <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+          </personnel>
+          <abstract>
+              <para></para>
+          </abstract>
+          <funding>
+              <para></para>
+          </funding>
+      </project>
+</dataset>
+
+<additionalMetadata>
+    <metadata>
+      <gbif>
+        <dateStamp>2018-11-26T10:43:59Z</dateStamp>
+      <citation>Blanck C, Eilertsen L (2018). nnf_verdisetting_vestlandet. Version 1.4. Rådgivende Biologer. Occurrence dataset https://doi.org/10.15468/ittsf0 accessed via GBIF.org on 2018-11-26.</citation>
+        </gbif>
+    </metadata>
+</additionalMetadata>
+
+</eml:eml>

@@ -1,0 +1,17 @@
+When using this dataset please use the following citation and pay attention to the rights documented in the rights.txt:
+Ihlen P G (2018). Kystfuruskoger 2015. Version 1.8. Asplan Viak AS. Occurrence dataset https://doi.org/10.15468/ulyuhk accessed via GBIF.org on 2018-11-26. 10.15468/ulyuhk
+Ramirez J, Tulig M, Watson K, Thiers B (2018). The New York Botanical Garden Herbarium (NY). Version 1.3. The New York Botanical Garden. Occurrence dataset https://doi.org/10.15468/6e8nje accessed via GBIF.org on 2018-11-26. 10.15468/6e8nje
+Telenius A, Rühling Å (2017). Oskarshamn herbarium (OHN). GBIF-Sweden. Occurrence dataset https://doi.org/10.15468/u5wjib accessed via GBIF.org on 2018-11-26. 10.15468/u5wjib
+Gonzatti F (2018). HUCS - Herbário da Universidade de Caxias do Sul. Version 1.45. Universidade de Caxias do Sul. Occurrence dataset https://doi.org/10.15468/nfw0hr accessed via GBIF.org on 2018-11-26.,   http://splink.cria.org.br/manager/detail?resource=HUCS 10.15468/nfw0hr
+Telenius A, Stenman K (2017). Herbarium of Umeå University (UME). GBIF-Sweden. Occurrence dataset https://doi.org/10.15468/gatdg4 accessed via GBIF.org on 2018-11-26. 10.15468/gatdg4
+Grant S, von Konrat M (2016). Field Museum of Natural History (Botany) Bryophyte Collection. Version 11.1. Field Museum. Occurrence dataset https://doi.org/10.15468/pyjtoc accessed via GBIF.org on 2018-11-26. 10.15468/pyjtoc
+Telenius A (2016). Gothenburg Herbarium - General (GBIF:IH:GB:Herbarium). GBIF-Sweden. Occurrence dataset https://doi.org/10.15468/afkfpi accessed via GBIF.org on 2018-11-26. 10.15468/afkfpi
+Blanck C, Eilertsen L (2018). nnf_verdisetting_vestlandet. Version 1.4. Rådgivende Biologer. Occurrence dataset https://doi.org/10.15468/ittsf0 accessed via GBIF.org on 2018-11-26. 10.15468/ittsf0
+European Molecular Biology Laboratory (EMBL) (2018). Geographically tagged INSDC sequences. Occurrence dataset https://doi.org/10.15468/cndomv accessed via GBIF.org on 2018-11-26. 10.15468/cndomv
+Wittzell H, Shah M (2018). Lund Botanical Museum (LD). Lund Botanical Museum (LD). Occurrence dataset https://doi.org/10.15468/c4w4co accessed via GBIF.org on 2018-11-26. 10.15468/c4w4co
+Natural History Museum, University of Oslo (2018). Bryophyte Herbarium, Oslo (O-B). Version 1.665. Occurrence dataset https://doi.org/10.15468/zctaps accessed via GBIF.org on 2018-11-26. 10.15468/zctaps
+Hoem S A (2018). Norwegian Species Observation Service. Version 3.27. The Norwegian Biodiversity Information Centre (NBIC). Occurrence dataset https://doi.org/10.15468/zjbzel accessed via GBIF.org on 2018-11-26. 10.15468/zjbzel
+University of Bergen (2018). Moss herbarium, UiB. Version 1.145. Occurrence dataset https://doi.org/10.15468/tarzrq accessed via GBIF.org on 2018-11-26. 10.15468/tarzrq
+Jordal J B (2018). Jordal. Version 1.90. Natural History Museum, University of Oslo. Occurrence dataset https://doi.org/10.15468/wqsad9 accessed via GBIF.org on 2018-11-26. 10.15468/wqsad9
+Blindheim T (2018). BioFokus. Version 1.899. Natural History Museum, University of Oslo. Occurrence dataset https://doi.org/10.15468/jxbhqx accessed via GBIF.org on 2018-11-26. 10.15468/jxbhqx
+NTNU University Museum (2018). Bryophyte herbarium, NTNU University Museum. Version 1.946. Occurrence dataset https://doi.org/10.15468/zxu8zu accessed via GBIF.org on 2018-11-26. 10.15468/zxu8zu

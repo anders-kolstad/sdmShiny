@@ -1,0 +1,33 @@
+
+Dataset: Kystfuruskoger 2015
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: The New York Botanical Garden Herbarium (NY)
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Oskarshamn herbarium (OHN)
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: HUCS - Herbário da Universidade de Caxias do Sul,   http://splink.cria.org.br/manager/detail?resource=HUCS
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Herbarium of Umeå University (UME)
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Field Museum of Natural History (Botany) Bryophyte Collection
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Gothenburg Herbarium - General (GBIF:IH:GB:Herbarium)
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: nnf_verdisetting_vestlandet
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Geographically tagged INSDC sequences
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Lund Botanical Museum (LD)
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Bryophyte Herbarium, Oslo (O-B)
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Norwegian Species Observation Service
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Moss herbarium, UiB
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Jordal
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: BioFokus
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Bryophyte herbarium, NTNU University Museum
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode

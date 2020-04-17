@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd"
+        packageId="b124e1e0-4755-430f-9eab-894f25a9b59c"  system="http://gbif.org" scope="system"
+  xml:lang="en">
+
+<dataset>
+      <alternateIdentifier>10.15468/zjbzel</alternateIdentifier>
+        <alternateIdentifier>https://data.gbif.no/ipt/resource?r=nbic_artsobs</alternateIdentifier>
+        <alternateIdentifier>http://data.gbif.no/ipt/resource?r=nbic_artsobs</alternateIdentifier>
+        <alternateIdentifier>http://gbif.no/ipt/resource?r=nbic_artsobs</alternateIdentifier>
+        <alternateIdentifier>b124e1e0-4755-430f-9eab-894f25a9b59c</alternateIdentifier>
+        <alternateIdentifier>14380</alternateIdentifier>
+    <title>Norwegian Species Observation Service</title>
+    <creator>
+    <individualName>
+<givenName>Stein Arild</givenName>          <surName>Hoem</surName>
+    </individualName>
+<organizationName>Artsdatabanken</organizationName><positionName>Overingeniør</positionName>    <address>
+<deliveryPoint>Elvegata 17</deliveryPoint><city>Trondheim</city><postalCode>7012</postalCode>    </address>
+<phone>73 59 07 92</phone><electronicMailAddress>Stein.Hoem@artsdatabanken.no</electronicMailAddress><onlineUrl>http://www.artsdatabanken.no</onlineUrl>    </creator>
+    <metadataProvider>
+    <individualName>
+<givenName>Stein Arild</givenName>          <surName>Hoem</surName>
+    </individualName>
+<organizationName>Artsdatabanken</organizationName><positionName>Overingeniør</positionName>    <address>
+<deliveryPoint>Elvegata 17</deliveryPoint><city>Trondheim</city><postalCode>7012</postalCode>    </address>
+<phone>73 59 07 92</phone><electronicMailAddress>Stein.Hoem@artsdatabanken.no</electronicMailAddress><onlineUrl>http://www.artsdatabanken.no</onlineUrl>    </metadataProvider>
+    <associatedParty>
+    <individualName>
+<givenName>marius</givenName>          <surName>nesser</surName>
+    </individualName>
+<electronicMailAddress>nesser@gmail.com</electronicMailAddress>    <role>USER</role>
+    </associatedParty>
+      <pubDate>
+      2018-11-18
+      </pubDate>
+    <language>ENGLISH</language>
+    <abstract>
+        <para>Citizen science species observations from the Species Observation Service in Norway (Artsobservasjoner).</para>
+    </abstract>
+        <keywordSet>
+              <keyword>Occurrence</keyword>
+              <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+              <keyword>Observation</keyword>
+              <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+              <keyword>cs</keyword>
+              <keyword>citizen science</keyword>
+              <keywordThesaurus>N/A</keywordThesaurus>
+        </keywordSet>
+      <intellectualRights>
+        <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+      </intellectualRights>
+      <distribution scope="document">
+          <online>
+              <url function="information">http://www.artsobservasjoner.no</url>
+          </online>
+      </distribution>
+      <coverage>
+            <geographicCoverage>
+                  <geographicDescription>Norwegian territory</geographicDescription>
+                  <boundingCoordinates>
+                      <westBoundingCoordinate>-15.98</westBoundingCoordinate>
+                      <eastBoundingCoordinate>37.07</eastBoundingCoordinate>
+                      <northBoundingCoordinate>81.13</northBoundingCoordinate>
+                      <southBoundingCoordinate>56.83</southBoundingCoordinate>
+                  </boundingCoordinates>
+            </geographicCoverage>
+      </coverage>
+      <maintenance>
+          <description>
+              <para></para>
+          </description>
+          <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+      </maintenance>
+      <contact>
+    <individualName>
+<givenName>Stein Arild</givenName>          <surName>Hoem</surName>
+    </individualName>
+<organizationName>Artsdatabanken</organizationName><positionName>Overingeniør</positionName>    <address>
+<deliveryPoint>Elvegata 17</deliveryPoint><city>Trondheim</city><postalCode>7012</postalCode>    </address>
+<phone>73 59 07 92</phone><electronicMailAddress>Stein.Hoem@artsdatabanken.no</electronicMailAddress><onlineUrl>http://www.artsdatabanken.no</onlineUrl>      </contact>
+
+</dataset>
+
+<additionalMetadata>
+    <metadata>
+      <gbif>
+        <dateStamp>2018-11-26T10:43:59Z</dateStamp>
+      <citation>Hoem S A (2018). Norwegian Species Observation Service. Version 3.27. The Norwegian Biodiversity Information Centre (NBIC). Occurrence dataset https://doi.org/10.15468/zjbzel accessed via GBIF.org on 2018-11-26.</citation>
+              <resourceLogoUrl>http://gbif.no/ipt/logo.do?r=nbic_artsobs</resourceLogoUrl>
+        </gbif>
+    </metadata>
+</additionalMetadata>
+
+</eml:eml>
