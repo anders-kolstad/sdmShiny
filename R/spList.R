@@ -2,11 +2,12 @@
 #' 
 #' This scripts produces a list of the species that we will quiery gbif for occurence data.
 #' \code(sl()) produces a species list and a dataframe with the same list pluss some more
+#' @param df Logical. Whether to return a dataframe which also includes the species group in a second column. Default is df = FALSE which returns acharacter string of names (type: vector).
 #'@import readxl 
 #'@export
 
 
-sl <- function(){
+sl <- function(df = FALSE){
 # for the alpine plants, it a short list, from Speed and Austrheim 2017 Biological Conservation:
 alp_sl <- c("Botrychium lanceolatum",
         'Comastoma tenellum',
@@ -33,14 +34,17 @@ alp_sl <- c("Botrychium lanceolatum",
 # https://artsdatabanken.no/Rodliste2015/sok?vurderings%u00e5r=2015
 
 # First, the (v)ascular (f)orest plants (karplanter) in the (r)ed (l)ist:
-vf_rl <- readxl::read_excel("raw data/vasc_rl.xlsx")
+vf_rl <- readxl::read_excel("./raw data/vasc_rl.xlsx")
 vf_sl<-droplevels(vf_rl[grep('*beit*',vf_rl$Påvirkningsfaktorer,ignore.case=T),])
 vf_sl <- vf_sl[,'Vitenskapelig navn']
 
 #View(vf_rl) 
 # Still quite a long list
 
-mySpList <<- c(alp_sl, vf_sl$`Vitenskapelig navn`)
-mySpListDF <<- data.frame(mySpList, "type" = c(rep("alpine", length(alp_sl)), rep("forest", nrow(vf_sl))))
+mySpList <- c(alp_sl, vf_sl$`Vitenskapelig navn`)
+mySpListDF <- data.frame(mySpList, "type" = c(rep("alpine", length(alp_sl)), rep("forest", nrow(vf_sl))))
 
+ifelse(df == FALSE, return(mySpList), return(mySpListDF))
+
+  
 }
