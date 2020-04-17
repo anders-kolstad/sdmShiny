@@ -4,7 +4,7 @@
 #' 
 #' Here comes the details...
 #' 
-#' @param 
+#' @param cs Logical. Should the funtion return a raster in the lonlat coordinate system (defult) or "UTM32"
 #' @return Returns a Large SpatialPolygonsDataFrame
 #' @import raster
 #' @import sp
@@ -15,7 +15,8 @@
 #' @export
 
 
-norway <- function(){
-  norway_longlat <<- raster::getData('GADM', country='NOR', level=0)
-  norway_UTM32   <<-sp::spTransform(norway_longlat,"+proj=utm +zone=32")
-}
+norway <- function(cs = "lonlat"){
+  norway_lonlat <- raster::getData('GADM', country='NOR', level=0)
+  norway_UTM32   <-sp::spTransform(norway_lonlat,"+proj=utm +zone=32")
+  ifelse(cs == "lonlat", return(norway_lonlat), return(norway_UTM32))
+  }

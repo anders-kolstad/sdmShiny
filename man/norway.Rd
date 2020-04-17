@@ -4,7 +4,10 @@
 \alias{norway}
 \title{Create an outline of Norway}
 \usage{
-norway()
+norway(cs = "lonlat")
+}
+\arguments{
+\item{cs}{Logical. Should the funtion return a raster in the lonlat coordinate system (defult) or "UTM32"}
 }
 \value{
 Returns a Large SpatialPolygonsDataFrame

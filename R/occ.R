@@ -1,7 +1,16 @@
 #' Get occurence data from gbif
 #' 
 #' Take a species list and harvest gbif data
-#' 
+#' @examples
+#' \dontrun{
+#'        x <- y
+#'        # put example here
+#'     }
+
+#' @import dismo
+#' @import sp
+#' @import mapview
+#' @export
 
 
 
@@ -21,7 +30,7 @@
 #gbif_citation(occ_download_meta(odLichen))# GBIF Occurrence Download https://doi.org/10.15468/dl.pl144i Accessed from R via rgbif (https://github.com/ropensci/rgbif) on 2018-11-26"
 
 
-
+occ <- function(){
 
 
 # test download
@@ -32,7 +41,7 @@ ps <- dismo::gbif("Primula", "scandinavica", download = T, geo = T, sp = F)
 
 # this will require a for loop
 
-class(ps)
+#class(ps)
 
 # backup
 PS <- ps
@@ -68,3 +77,6 @@ mapview::mapview(ps,
 #  addCircleMarkers(lat = ~lat, lng = ~lon,
 #                   color = "blue",
 #                   radius = 0.05)
+
+
+}

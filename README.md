@@ -20,49 +20,56 @@ Install the development version from [GitHub](https://github.com/) with:
 Example
 -------
 
-first: include\_app
+Here is an example application: <https://anderskolstad.shinyapps.io/demoSDM/>
+
+Documentation
+=============
+
+This section explains the workflow that ended up the the shiny app. The r project is arranged as an r package. All r code such as functions are in the 'data' folder.
+
+1) Get species list
+-------------------
+
+This is the first function. It produces a list of species that we will later use to harvest occurence data from gbif. ...
 
 ``` r
-knitr::include_app("https://anderskolstad.shinyapps.io/demoSDM/", height = "200px")
+mySpecies <- sl()
+head(mySpecies)
+# alternatively
+# mySpecies(df = TRUE)
 ```
 
-<a href="https://anderskolstad.shinyapps.io/demoSDM/" target="_blank"><img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" /></a>
+Get environmental data (explanatory variables)
+==============================================
 
-then: include\_url
+A .gri file with already collated environmental data was downloaded from NTNU box: <https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/393633279036>
 
 ``` r
-knitr::include_url("https://anderskolstad.shinyapps.io/demoSDM/", height = "200px")
+env <- raster::stack("data/large/PredictorVariables.grd")
+names(env)
+#>  [1] "bio1_16"                   "bio2_16"                  
+#>  [3] "bio3_16"                   "bio4_16"                  
+#>  [5] "bio5_16"                   "bio6_16"                  
+#>  [7] "bio7_16"                   "bio8_16"                  
+#>  [9] "bio9_16"                   "bio10_16"                 
+#> [11] "bio11_16"                  "bio12_16"                 
+#> [13] "bio13_16"                  "bio14_16"                 
+#> [15] "bio15_16"                  "bio16_16"                 
+#> [17] "bio17_16"                  "bio18_16"                 
+#> [19] "bio19_16"                  "NOR_msk_alt"              
+#> [21] "ar50_type"                 "ar50_treslag"             
+#> [23] "ar50_skogbon"              "ar50_veget"               
+#> [25] "geonode_phihox_m_sl2_250m" "moose1949"                
+#> [27] "moose1959"                 "moose1969"                
+#> [29] "moose1979"                 "moose1989"                
+#> [31] "moose1999"                 "moose2009"                
+#> [33] "moose2015"                 "red_deer1949"             
+#> [35] "red_deer1959"              "red_deer1969"             
+#> [37] "red_deer1979"              "red_deer1989"             
+#> [39] "red_deer1999"              "red_deer2009"             
+#> [41] "red_deer2015"              "roe_deer1949"             
+#> [43] "roe_deer1959"              "roe_deer1969"             
+#> [45] "roe_deer1979"              "roe_deer1989"             
+#> [47] "roe_deer1999"              "roe_deer2009"             
+#> [49] "roe_deer2015"
 ```
-
-<a href="https://anderskolstad.shinyapps.io/demoSDM/" target="_blank"><img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" /></a>
-
-Example
--------
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-#library(sdmShiny)
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!

@@ -2,15 +2,22 @@
 #' 
 #' Download or describe past downloads of environmental data
 #' 
-#' 
+#' #' @examples
+#' \dontrun{
+#'        x <- y
+#'        # put example here
+#'     }
 
 
+
+
+env <- function(){
 # env <- raster::stack("data/large/PredictorVariables.grd")
  # plot(env[[1]])
 #download.file(url,
 #              destfile = "/data/forest_env.gri")
 
-url <- "https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/393633279036"
+#url <- "https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/393633279036"
 #url2 <- getURL(url)
 
 # Forest species data ####
@@ -25,3 +32,5 @@ url <- "https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/3936332
 #                        user='jamesspeed',pwd='*****',email='*****')
 # occ_download_meta(odLichen)
 # gbif_citation(occ_download_meta(odLichen))# GBIF Occurrence Download https://doi.org/10.15468/dl.pl144i Accessed from R via rgbif (https://github.com/ropensci/rgbif) on 2018-11-26"
+
+}

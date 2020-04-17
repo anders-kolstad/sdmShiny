@@ -1,8 +1,16 @@
 #' Get species lists
 #' 
 #' This scripts produces a list of the species that we will quiery gbif for occurence data.
-#' \code(sl()) produces a species list and a dataframe with the same list pluss some more
+#' \code{sl()} produces a species list and a dataframe with the same list pluss some more
 #' @param df Logical. Whether to return a dataframe which also includes the species group in a second column. Default is df = FALSE which returns acharacter string of names (type: vector).
+#' 
+#' @examples
+#' \dontrun{
+#'        myList <- sl()
+#'     }
+
+
+
 #'@import readxl 
 #'@export
 
