@@ -1,11 +1,19 @@
 
+-   [sdmShiny](#sdmshiny)
+    -   [Installation](#installation)
+    -   [Example application](#example-application)
+-   [Documentation](#documentation)
+    -   [Get species list](#get-species-list)
+    -   [Environmental data](#environmental-data)
+        -   [Worldclim data and DTM](#worldclim-data-and-dtm)
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 sdmShiny
 ========
 
 <!-- badges: start -->
 <!-- badges: end -->
-This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. ![The Shiny app will look something like this](figures/app.png)
+This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
 
 Installation
 ------------
@@ -25,12 +33,12 @@ Follow this link <https://anderskolstad.shinyapps.io/demoSDM/>
 Documentation
 =============
 
-This section explains the workflow that ended up the the shiny app. The r project is arranged as an r package. All r code such as functions are in the 'data' folder.
+This section explains the workflow that ended up the the shiny app. The r project is arranged as an r package. All r code such as functions are in the 'data' folder. Large files around 100mb or greater, or unessential raster files etc., are in the data/large/ folder whihc is not pushed (it's in the .gitignore file) and therefore only exists locally with Anders.
 
-1) Get species list
--------------------
+Get species list
+----------------
 
-This is the first function. It produces a list of species that we will later use to harvest occurence data from gbif. ...
+This function produces a list of species that we will later use to harvest occurence data from gbif. More on this later.
 
 ``` r
 source("./R/spList.R")
@@ -44,8 +52,8 @@ head(mySpecies)
 # mySpecies(df = TRUE)
 ```
 
-Get environmental data (explanatory/independent variables)
-==========================================================
+Environmental data
+------------------
 
 From the alpine red listed species paper, I got this sent over from James:
 
@@ -91,12 +99,9 @@ names(IV)
 #> [49] "roe_deer2015"
 ```
 
-##### Description
+Description \* This file does not contain reindeer, muskox, or livestock) densities. \* ar50 maps are land use classes, including forest productivity (skogbon) and dominating forest tree species (treslag) \* geonode is pH, but not actually, cause values range from 40-70 ish. But could be something like CEC perhaps? \* bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publications.
 
--   This file does not contain reindeer, muskox, or livestock) densities.
--   ar50 maps are land use classes, including forest productivity (skogbon) and dominating forest tree species (treslag)
--   geonode is pH, but not actually, cause values range from 40-70 ish. But could be something like CEC perhaps?
--   bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publications.
+### Worldclim data and DTM
 
 Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
 
