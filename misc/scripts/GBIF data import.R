@@ -143,7 +143,7 @@ plot(norway)
 # fwrite(ForestRedList_adb@data,file='RedListedForestSpeciesNorwayBeite.csv')
 
 
-# Environmental data ------------------------------------------------------
+# Environmental data ------------------------------------------------------####
 
 
 #Elevation
@@ -227,7 +227,7 @@ plot(Norelev)
 # PredVars<-stack(NorClimElev_utm,landcover,Norsoilph,moosestack,red_deerstack,roe_deerstack)
 # writeRaster(PredVars,'PredictorVariables',overwrite=T)
 
-
+myIVs@layers
 # Setup -------------------------------------------------------------------
 
 PredVars<-stack('PredictorVariables')#Available here https://ntnu.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa 

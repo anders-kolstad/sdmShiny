@@ -1,0 +1,25 @@
+[general]
+creator=R package 'raster'
+created=2020-04-20 12:32:00
+[georeference]
+nrows=1628
+ncols=1115
+xmin=229758.42663586
+ymin=6397776.07720511
+xmax=1344758.42663586
+ymax=8025776.07720511
+projection=+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=12
+bandorder=BIL
+minvalue=10:31:11:51:41.1432228088379:0:0:0:0:12.8850374221802:381.267456054688:-22.6531200408936
+maxvalue=99:99:18:99:64.0307006835938:199.907043457031:384.423461914062:162.565353393555:969.929992675781:163.800857543945:2941.74438476562:2239.38159179688
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=Land_Cover:Forest_Type:Forest_Productivity:Vegetation_Type:SoilpH:moose1999:red_deer1999:roe_deer1999:TundraHerbivores:temp:prec:elev
