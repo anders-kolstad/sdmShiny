@@ -16,6 +16,7 @@
         -   [Worldclim data and DTM](#worldclim-data-and-dtm)
             -   [Combine all IVs](#combine-all-ivs)
     -   [Occurence data](#occurence-data)
+-   [remove NA's](#remove-nas)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 sdmShiny
@@ -27,7 +28,7 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-04-20 13:52:46 CEST"
+#> [1] "2020-04-21 11:18:32 CEST"
 ```
 
 This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
@@ -379,18 +380,103 @@ head(mySpecies)
 #> [5] "Primula scandinavica"    "Pseudorchis albida"
 ```
 
-This is my species list. I will probably need to to some cleaning, perhaps using 'taxize' or somethin similar. James used the rgbif package, which require I think taxonIDs, as well as login credential to gbif.
+This is my species list. I will probably need to to some cleaning, perhaps using 'taxize' or somethin similar. James used the rgbif package, which require I think taxonIDs, as well as login credential to gbif. Here I'm assuming the names are recognisable by gbif.
 
-As a test I will use a shorter list of just two.
+To test the functions I will use a shorter list of 10 species.
 
 ``` r
-mySpecies2 <- mySpecies[c(1,5)]
+mySpecies2 <- mySpecies[1:10]
 ```
 
 Lets do a test loop without downloading anything, just seeing how many records there are.
 
-Work in progress....
+``` r
+nOccurences_df <- data.frame(species = mySpecies2, 
+                  nOccurences = as.numeric(NA))
 
-myO &lt;- data.frame(species = mySpecies2, No.occurences = NA)
+for(i in 1:length(mySpecies2)){
+  myName  <- mySpecies2[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F) 
+}
+#> Loading required namespace: jsonlite
 
-for(i in length(mySpecies2)){ myName &lt;- mySpecies2\[i\] myName2 &lt;- stringr::str\_split(myName, " ")\[\[1\]\] myO*N**o*.*o**c**c**u**r**e**n**c**e**s*\[*m**y**O*species == i\] &lt;- dismo::gbif(myName2\[1\], myName2\[2\], download = F) }
+nOccurences_df
+#>                    species nOccurences
+#> 1   Botrychium lanceolatum        4976
+#> 2       Comastoma tenellum        6321
+#> 3   Gentianella campestris       54070
+#> 4  Kobresia simpliciuscula        3393
+#> 5     Primula scandinavica         321
+#> 6       Pseudorchis albida       20966
+#> 7      Pulsatilla vernalis       23626
+#> 8    Buglossoides arvensis       36616
+#> 9       Anisantha sterilis      113475
+#> 10       Sorbus lancifolia         101
+```
+
+This shows some of the bas in the occurence data that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321.
+
+For the next part I will use two species with a quite low number of records to reduce processing time.
+
+``` r
+mySpecies3 <- mySpecies2[mySpecies2 == c("Primula scandinavica", "Kobresia simpliciuscula")]
+```
+
+For fun. lets see what these plants look like.
+
+``` r
+list.files("./figures/plants")
+```
+
+![Alt text](figures/plants/Kobresia_simpliciuscula_Andrey_Zharkikh_CCBY2.jpg) Picture: *Kobresia simpliciuscula* (Andrey Zharkikh CC-BY 2.0)
+
+![Alt text](figures/plants/Primula_scandinavica_Anders_Kolstad_CCBY4.JPG) Picture: *Primula scandinavica* (Anders Kolstad CC-BY 4.0)
+
+(Note: The picture sizes are 250p and 400p, respectively)
+
+For real this time:
+
+``` r
+for(i in 1:length(mySpecies3)){
+  myName  <- mySpecies3[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  
+  assign(
+    base::noquote(sub(' ', '_', mySpecies3[i])), 
+         dismo::gbif(myName2[1], myName2[2], 
+                                        download = T,
+                                        geo = T, 
+                                        sp = F) 
+  )
+}
+#> 3393 records found
+#> 0-300-600-900-1200-1500-1800-2100-2400-2700-3000-3300-3393 records downloaded
+#> 321 records found
+#> 0-300-321 records downloaded
+```
+
+Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later).
+
+``` r
+for(i in 1:length(mySpecies3)){
+  
+  
+  d <- get(
+           base::noquote(sub(' ', '_', mySpecies3[i])))
+  d <- d[,c("species","lat","lon")]
+  
+  assign(
+      base::noquote(sub(' ', '_', mySpecies3[i])),  d)
+  
+}
+```
+
+work in progress...
+
+remove NA's
+===========
+
+w &lt;- which(is.na(ps*l**o**n*))*i**f*(*l**e**n**g**t**h*(*w*)! = 0)*p**s* &lt; −*p**s*\[−*w*, \]*w* &lt; −*w**h**i**c**h*(*i**s*.*n**a*(*p**s*lat)) if(length(w) != 0) ps &lt;- ps\[-w,\] w &lt;- which(ps*l**o**n* = =0)*i**f*(*l**e**n**g**t**h*(*w*)! = 0)*p**s* &lt; −*p**s*\[−*w*, \]*w* &lt; −*w**h**i**c**h*(*p**s*lat == 0) if(length(w) != 0) ps &lt;- ps\[-w,\]
+
+ps$species &lt;- 'Primula scandinavica' ps &lt;- ps\[,c("lon", "lat","species")\] head(ps) sp::coordinates(ps) &lt;- ~lon + lat sp::proj4string(ps) &lt;- sp::proj4string(raster::raster()) \#library(mapview) mapview::mapview(ps, map.types = c("Esri.WorldShadedRelief", "Esri.WorldImagery"), cex = 5, lwd = 0, alpha.regions = 0.5, col.regions = "blue")
