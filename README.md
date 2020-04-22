@@ -3,7 +3,6 @@
     -   [Installation](#installation)
     -   [Example application](#example-application)
 -   [Documentation](#documentation)
-    -   [Get species list](#get-species-list)
     -   [Environmental data](#environmental-data)
         -   [Overview](#overview)
         -   [Existing raster stacks](#existing-raster-stacks)
@@ -15,8 +14,9 @@
                     -   [Forest type](#forest-type)
         -   [Worldclim data and DTM](#worldclim-data-and-dtm)
             -   [Combine all IVs](#combine-all-ivs)
+    -   [Get species list](#get-species-list)
     -   [Occurence data](#occurence-data)
--   [remove NA's](#remove-nas)
+    -   [SDM](#sdm)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 sdmShiny
@@ -28,7 +28,7 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-04-21 11:18:32 CEST"
+#> [1] "2020-04-22 12:41:46 CEST"
 ```
 
 This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
@@ -52,23 +52,6 @@ Documentation
 =============
 
 This section explains the workflow that ended up the the shiny app. The r project is arranged as an r package. All r code such as functions are in the 'data' folder. Large files around 100mb or greater, or unessential raster files etc., are in the data/large/ folder whihc is not pushed (it's in the .gitignore file) and therefore only exists locally with Anders.
-
-Get species list
-----------------
-
-This function produces a list of species that we will later use to harvest occurence data from gbif. More on this later.
-
-``` r
-source("./R/spList.R")
-mySpecies <- sl()
-head(mySpecies)
-#> [1] "Botrychium lanceolatum"  "Comastoma tenellum"     
-#> [3] "Gentianella campestris"  "Kobresia simpliciuscula"
-#> [5] "Primula scandinavica"    "Pseudorchis albida"
-
-# alternatively
-# mySpecies(df = TRUE)
-```
 
 Environmental data
 ------------------
@@ -114,7 +97,7 @@ rm(IV)
 raster::plot(reindeerSheep)
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 #### The 'forest' paper
 
@@ -177,7 +160,7 @@ levels(PredVars$Land_Cover) <- ratlc
 rasterVis::levelplot(PredVars$Land_Cover)
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 ###### Forest productivity
 
@@ -211,7 +194,7 @@ levels(PredVars$Forest_Productivity) <- ratlcp
 rasterVis::levelplot(PredVars$Forest_Productivity)
 ```
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
 ###### Forest type
 
@@ -239,7 +222,7 @@ levels(PredVars$Forest_Type) <- ratlct
 rasterVis::levelplot(PredVars$Forest_Type)
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
 
 ### Worldclim data and DTM
 
@@ -258,7 +241,7 @@ Norbioclim <- raster::stack("data/large/Norbioclim.grd")
 raster::plot(Norbioclim)
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
 ``` r
 # second tile
@@ -269,7 +252,7 @@ Norbioclim1 <- raster::stack("data/large/Norbioclim1.grd")
 raster::plot(Norbioclim1)
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
 
 ``` r
 #third tile
@@ -280,7 +263,7 @@ Norbioclim2 <- raster::stack("data/large/Norbioclim2.grd")
 raster::plot(Norbioclim2)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
 
 Then I merge these together.
 
@@ -290,7 +273,7 @@ mergclim1<-raster::merge(mergclim,Norbioclim2)
 raster::plot(mergclim1)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
 
 Now I get a DTM for Norway to be used as an IV, but also to crop the wordclim data.
 
@@ -302,7 +285,7 @@ Norelev <- raster::stack("data/large/Norelev.grd")
 raster::plot(Norelev)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
 
 Then I crop the worldclim data
 
@@ -311,7 +294,7 @@ cropclim<-raster::crop(mergclim1,Norelev)
 raster::plot(cropclim)
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
 
 That took care of the extent. Now I want to put all cells that are outside the DTM as NA also in the climate layers
 
@@ -320,7 +303,7 @@ Norclimdat<-raster::mask(cropclim,Norelev)
 raster::plot(Norclimdat)
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-20-1.png" width="100%" />
 
 I can put these two together.
 
@@ -368,6 +351,23 @@ names(myIVs)
 #> [10] "temp"                "prec"                "elev"
 ```
 
+Get species list
+----------------
+
+This function produces a list of species that we will later use to harvest occurence data from gbif. More on this later.
+
+``` r
+source("./R/spList.R")
+mySpecies <- sl()
+head(mySpecies)
+#> [1] "Botrychium lanceolatum"  "Comastoma tenellum"     
+#> [3] "Gentianella campestris"  "Kobresia simpliciuscula"
+#> [5] "Primula scandinavica"    "Pseudorchis albida"
+
+# alternatively
+# mySpecies(df = TRUE)
+```
+
 Occurence data
 --------------
 
@@ -380,7 +380,7 @@ head(mySpecies)
 #> [5] "Primula scandinavica"    "Pseudorchis albida"
 ```
 
-This is my species list. I will probably need to to some cleaning, perhaps using 'taxize' or somethin similar. James used the rgbif package, which require I think taxonIDs, as well as login credential to gbif. Here I'm assuming the names are recognisable by gbif.
+This is my species list with correct spelling (direct from ADB).
 
 To test the functions I will use a shorter list of 10 species.
 
@@ -408,19 +408,19 @@ nOccurences_df
 #> 3   Gentianella campestris       54070
 #> 4  Kobresia simpliciuscula        3393
 #> 5     Primula scandinavica         321
-#> 6       Pseudorchis albida       20966
-#> 7      Pulsatilla vernalis       23626
-#> 8    Buglossoides arvensis       36616
+#> 6       Pseudorchis albida       20972
+#> 7      Pulsatilla vernalis       23630
+#> 8    Buglossoides arvensis       36633
 #> 9       Anisantha sterilis      113475
 #> 10       Sorbus lancifolia         101
 ```
 
-This shows some of the bas in the occurence data that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321.
+This shows some of the bas in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321.
 
 For the next part I will use two species with a quite low number of records to reduce processing time.
 
 ``` r
-mySpecies3 <- mySpecies2[mySpecies2 == c("Primula scandinavica", "Kobresia simpliciuscula")]
+mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
 ```
 
 For fun. lets see what these plants look like.
@@ -443,7 +443,7 @@ for(i in 1:length(mySpecies3)){
   myName2 <- stringr::str_split(myName, " ")[[1]]
   
   assign(
-    base::noquote(sub(' ', '_', mySpecies3[i])), 
+    sub(' ', '_', mySpecies3[i]), 
          dismo::gbif(myName2[1], myName2[2], 
                                         download = T,
                                         geo = T, 
@@ -459,24 +459,284 @@ for(i in 1:length(mySpecies3)){
 Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later).
 
 ``` r
+qc <- data.frame(Species = mySpecies3,
+                 lon_is_NA =                        as.numeric(NA),
+                 lat_NA_when_lon_not          =     as.numeric(NA),
+                 lon_is_zero =                      as.numeric(NA),
+                 lat_zero_when_lon_not = as.numeric(NA))
+
 for(i in 1:length(mySpecies3)){
   
   
   d <- get(
-           base::noquote(sub(' ', '_', mySpecies3[i])))
+           sub(' ', '_', mySpecies3[i]))
   d <- d[,c("species","lat","lon")]
   
+  # remove spaces in names (it clogs up the sdm function)
+  d$species <- sub(' ', '_', d$species)
+  
+  # remove NA's
+  w1 <- which(is.na(d$lon))
+  if(length(w1) != 0) d <- d[-w1,]
+  w2 <- which(is.na(d$lat))
+  if(length(w2) != 0) d <- d[-w2,]
+  
+  # remove those with coordinates equal to zero
+  w3 <- which(d$lon == 0)
+  if(length(w3) != 0) d <- d[-w3,]
+  w4 <- which(d$lat == 0)
+  if(length(w4) != 0) d <- d[-w4,]
+  
   assign(
-      base::noquote(sub(' ', '_', mySpecies3[i])),  d)
+      sub(' ', '_', mySpecies3[i]),  d)
+  
+  qc[i,2] <- length(w1)
+  qc[i,3] <- length(w2)
+  qc[i,4] <- length(w3)
+  qc[i,5] <- length(w4)
   
 }
 ```
 
-work in progress...
+A dataframe called qc tells us what has happened.
 
-remove NA's
-===========
+``` r
+qc
+#>                   Species lon_is_NA lat_NA_when_lon_not lon_is_zero
+#> 1 Kobresia simpliciuscula       787                   0           0
+#> 2    Primula scandinavica       172                   0           0
+#>   lat_zero_when_lon_not
+#> 1                     0
+#> 2                     0
+```
 
-w &lt;- which(is.na(ps*l**o**n*))*i**f*(*l**e**n**g**t**h*(*w*)! = 0)*p**s* &lt; −*p**s*\[−*w*, \]*w* &lt; −*w**h**i**c**h*(*i**s*.*n**a*(*p**s*lat)) if(length(w) != 0) ps &lt;- ps\[-w,\] w &lt;- which(ps*l**o**n* = =0)*i**f*(*l**e**n**g**t**h*(*w*)! = 0)*p**s* &lt; −*p**s*\[−*w*, \]*w* &lt; −*w**h**i**c**h*(*p**s*lat == 0) if(length(w) != 0) ps &lt;- ps\[-w,\]
+We have cut 787 rows from the Kobresia and 172 from Primula, due to missing coordinates.
 
-ps$species &lt;- 'Primula scandinavica' ps &lt;- ps\[,c("lon", "lat","species")\] head(ps) sp::coordinates(ps) &lt;- ~lon + lat sp::proj4string(ps) &lt;- sp::proj4string(raster::raster()) \#library(mapview) mapview::mapview(ps, map.types = c("Esri.WorldShadedRelief", "Esri.WorldImagery"), cex = 5, lwd = 0, alpha.regions = 0.5, col.regions = "blue")
+Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  sp::coordinates(d) <- ~lon + lat
+  sp::proj4string(d) <- sp::proj4string(raster::raster())
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+```
+
+``` r
+mapview::mapview(Kobresia_simpliciuscula, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+<img src="man/figures/README-unnamed-chunk-34-1.png" width="100%" />
+
+``` r
+mapview::mapview(Primula_scandinavica, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+<img src="man/figures/README-unnamed-chunk-35-1.png" width="100%" /> First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway.
+
+``` r
+# outline <- norway()
+#saveRDS(outline, "data/outline_Norway.RData") # 1.8MB
+outline <- readRDS("data/outline_Norway.RData")
+raster::plot(outline)
+```
+
+<img src="man/figures/README-unnamed-chunk-36-1.png" width="100%" />
+
+Now to clip away occurences outside this polygon (can take a few minutes)
+
+``` r
+
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  d <- raster::crop(d, outline)
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+```
+
+Let's see it it worked.
+
+``` r
+mapview::mapview(Kobresia_simpliciuscula, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+<img src="man/figures/README-unnamed-chunk-38-1.png" width="100%" />
+
+``` r
+mapview::mapview(Primula_scandinavica, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+<img src="man/figures/README-unnamed-chunk-39-1.png" width="100%" /> Looks like it. Now we just need to get this over to UTM32 to match the IV data, and save it on file.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  d <- sp::spTransform(d, myIVs[[1]]@crs)
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+
+oDat <- get(sub(' ', '_', mySpecies3[1]))
+for(i in 2:length(mySpecies3)){
+  oDat <- rbind(oDat, get(sub(' ', '_', mySpecies3[i])))
+  }
+saveRDS(oDat, 'data/oDat.RData')
+rm(oDat)
+```
+
+``` r
+oDat <- readRDS('data/oDat.RData')
+```
+
+SDM
+---
+
+Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll skipp the two least important variables land\_use\_classes and bio15. I'll create 1000 random pseudo abseses across the goegraphical area (Norway I suppose).
+
+``` r
+library(sdm)
+#> Loading required package: sp
+#> sdm 1.0-82 (2020-02-03)
+md <- sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
+                   train = oDat,
+                   predictors = myIVs,
+                   bg = list(n=1000, method = "gRandom"))
+#> Loading required package: dismo
+#> Loading required package: raster
+#> Loading required package: gbm
+#> Loaded gbm 2.1.5
+#> Loading required package: tree
+#> Registered S3 method overwritten by 'tree':
+#>   method     from
+#>   print.tree cli
+#> Loading required package: mda
+#> Loading required package: class
+#> Loaded mda 0.4-10
+#> Loading required package: mgcv
+#> Loading required package: nlme
+#> 
+#> Attaching package: 'nlme'
+#> The following object is masked from 'package:raster':
+#> 
+#>     getData
+#> This is mgcv 1.8-28. For overview type 'help("mgcv-package")'.
+#> Loading required package: glmnet
+#> Loading required package: Matrix
+#> Loaded glmnet 3.0-2
+#> Loading required package: earth
+#> Loading required package: Formula
+#> Loading required package: plotmo
+#> Loading required package: plotrix
+#> Loading required package: TeachingDemos
+#> Loading required package: rJava
+#> Loading required package: RSNNS
+#> Loading required package: Rcpp
+#> Loading required package: randomForest
+#> randomForest 4.6-14
+#> Type rfNews() to see new features/changes/bug fixes.
+#> Loading required package: rpart
+#> Loading required package: kernlab
+#> 
+#> Attaching package: 'kernlab'
+#> The following objects are masked from 'package:raster':
+#> 
+#>     buffer, rotated
+
+md
+#> class                                 : sdmdata 
+#> =========================================================== 
+#> number of species                     :  2 
+#> species names                         :  Carex_simpliciuscula, Primula_scandinavica 
+#> number of features                    :  4 
+#> feature names                         :  temp, prec, SoilpH, ... 
+#> type                                  :  Presence-Background 
+#> has independet test data?             :  FALSE 
+#> number of records                     :  887 
+#> has Coordinates?                      :  TRUE
+```
+
+I tried making an automated list of DVs but couldn't get the model to take it, so I spell them out at least for now. We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 3 times.
+
+``` r
+m <- sdm::sdm(
+  Carex_simpliciuscula + 
+  Primula_scandinavica~., 
+              data = md, 
+              methods = c('maxent'),   # lets keep it simple
+              replication = c('boot'), n=3)  
+#> Loading required package: parallel
+m
+#> class                                 : sdmModels 
+#> ======================================================== 
+#> number of species                     :  2 
+#> number of modelling methods           :  1 
+#> names of modelling methods            :  maxent 
+#> replicate.methods (data partitioning) :  bootstrap 
+#> number of replicates (each method)    :  3 
+#> toral number of replicates per model  :  3 (per species) 
+#> ------------------------------------------
+#> model run success percentage (per species)  :
+#> ------------------------------------------
+#> method          Carex_simpliciuscula     Primula_scandinavica     
+#> ------------------------------------------------------- 
+#> maxent     :            100           |           100   %
+#> 
+#> ###################################################################
+#> model Mean performance (per species), using test dataset (generated using partitioning):
+#> -------------------------------------------------------------------------------
+#> 
+#>  ## species   :  Carex_simpliciuscula 
+#> =========================
+#> 
+#> methods    :     AUC     |     COR     |     TSS     |     Deviance 
+#> -------------------------------------------------------------------------
+#> maxent     :     0.89    |     0.73    |     0.71    |     0.87     
+#> 
+#>  ## species   :  Primula_scandinavica 
+#> =========================
+#> 
+#> methods    :     AUC     |     COR     |     TSS     |     Deviance 
+#> -------------------------------------------------------------------------
+#> maxent     :     0.91    |     0.56    |     0.78    |     0.43
+```
+
+AUC is probably inflated due to fake test data. But the model ran at least. Let's save the model object.
+
+``` r
+saveRDS(m, "models/firstTest.RData")
+```
