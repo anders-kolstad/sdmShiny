@@ -4,10 +4,10 @@
 \alias{norway}
 \title{Create an outline of Norway}
 \usage{
-norway(cs = "lonlat")
+norway(lonlat = TRUE)
 }
 \arguments{
-\item{cs}{Logical. Should the funtion return a raster in the lonlat coordinate system (defult) or "UTM32"}
+\item{lonlat}{Should the funtion return a raster in the lonlat coordinate system (defult) or not, in which case it return it as UTM32.}
 }
 \value{
 Returns a Large SpatialPolygonsDataFrame
@@ -20,6 +20,7 @@ Here comes the details...
 }
 \examples{
 \dontrun{
-norway()
+norway() # for a lonlat polygon
+norway(lonlat = F) # for a UTM32 polygon
 }
 }

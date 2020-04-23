@@ -20,11 +20,11 @@ sl <- function(df = FALSE){
 alp_sl <- c("Botrychium lanceolatum",
         'Comastoma tenellum',
         'Gentianella campestris',
-        'Kobresia simpliciuscula',
+        'Kobresia simpliciuscula',   # NT in 2010, but LC in 2015
         'Primula scandinavica',
         'Pseudorchis albida',
         'Pulsatilla vernalis')
-
+# All these, I think, are on the red list due to reduced grazing. None are here because of overgrazing -watch out for negative parameter estimates for cervid densities!
 
 
 # What about synonyms? 

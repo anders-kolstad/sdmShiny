@@ -32,18 +32,15 @@ The Shiny app will look something like this:
 
 
 ## Installation
-Developers should clone the repo and work from there.One can also install the development version from [GitHub](https://github.com/) with:
-```{r, eval = F}
-install.packages("devtools")
-devtools::install_github("anders-kolstad/sdmShiny")
-```
+Developers should clone the repo and work from there.
+
 ## Example application
 Follow this link
 https://anderskolstad.shinyapps.io/demoSDM/
 
 
 # Documentation
-This section explains the workflow that ended up the the shiny app. The r project is arranged as an r package. All r code such as functions are in the 'data' folder. Large files around 100mb or greater, or unessential raster files etc., are in the data/large/ folder whihc is not pushed (it's in the .gitignore file) and therefore only exists locally with Anders.
+This section explains the workflow that ended up the the shiny app. Large files around 100mb or greater, or unessential raster files etc., are in the data/large/ folder whihc is not pushed (it's in the .gitignore file) and therefore only exists locally with Anders. The same for RData files intill I find a way to load them without getting magic number errors (readRDS don't work with knitr).
 
 
 ## Environmental data 
@@ -422,8 +419,8 @@ mapview::mapview(Primula_scandinavica,
 First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway. 
 ```{r}
 # outline <- norway()
-#saveRDS(outline, "data/outline_Norway.RData") # 1.8MB
-outline <- readRDS("data/outline_Norway.RData")
+#saveRDS(outline, "data/large/outline_Norway.RData") # 1.8MB
+outline <- readRDS("data/large/outline_Norway.RData")
 raster::plot(outline)
 ```
 
@@ -479,45 +476,158 @@ oDat <- get(sub(' ', '_', mySpecies3[1]))
 for(i in 2:length(mySpecies3)){
   oDat <- rbind(oDat, get(sub(' ', '_', mySpecies3[i])))
   }
-saveRDS(oDat, 'data/oDat.RData')
+saveRDS(oDat, 'data/large/oDat.RData')
 rm(oDat)
 ```
 
 ```{r}
-oDat <- readRDS('data/oDat.RData')
+oDat <- readRDS('data/large/oDat.RData')
+```
+
+```{r}
+raster::plot(myIVs[[10]])
+raster::plot(oDat,add=T)
 ```
 
 
 
 ##SDM
-Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll skipp the two least important variables land_use_classes and bio15. I'll create 1000 random pseudo abseses across the goegraphical area (Norway I suppose). 
+Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll skipp the two least important variables land_use_classes and bio15. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify smultiple species.
 
 ```{r}
 library(sdm)
-md <- sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
-                   train = oDat,
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- oDat[oDat$species == s,]
+  assign(paste0(s, "_d"), sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
+                   train = d,
                    predictors = myIVs,
-                   bg = list(n=1000, method = "gRandom"))
-
-md
-```
-
-I tried making an automated list of DVs but couldn't get the model to take it, so I spell them out at least for now. We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 3 times.
-```{r}
-m <- sdm::sdm(
-  Carex_simpliciuscula + 
-  Primula_scandinavica~., 
-              data = md, 
-              methods = c('maxent'),   # lets keep it simple
-              replication = c('boot'), n=3)  
-m
-
+                   bg = list(n=nrow(d), method = "gRandom")))
+}
 
 ```
-AUC is probably inflated due to fake test data. But the model ran at least.
-Let's save the model object.
+This takes the names over to the gbif approved names (Kobresia to Carex). Perhaps it's for the best.
+
+We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 3 times. I will use 3 methods as well, resulting in 9 models per species. Could do more, but that will take longer.
+
+
+
 ```{r}
-saveRDS(m, "models/firstTest.RData")
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- get(paste0(s, "_d"))
+  mod <- sdm::sdm(.~.,
+              data = d, 
+              methods = c('glm', 'gam', 'rf'),   
+              replication = c('boot'), n=3)
+    assign(paste0(s, "_m"), 
+         mod)
+}
+
+```
+*Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
+```{r, eval = F}
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- get(paste0(s, "_d"))
+  mod <- sdm::sdm(paste(s)~.,     # also tried noquote, eval, and  print(quote = F)...
+              data = d, 
+              methods = c('glm', 'gam', 'rf'),   
+              replication = c('boot'), n=3)
+    assign(paste0(s, "_mxxx"), 
+         mod)
+}
+```
+
+
+I get some warning about the number of unique data points being five or less. But the models ran at least.
+```{r}
+Carex_simpliciuscula_m
+```
+
+```{r}
+Primula_scandinavica_m
+```
+
+Note: Here I would also like to get a plot of the combined/avergaed variable importance.
+
+### Ensable
+Lets put the 3*3 models together and make a map of the current habitat suitability, using ensamble.
+```{r}
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- get(paste0(s, "_m"))
+  
+  mod <- sdm::ensemble(d,
+              newdata = myIVs, 
+              filename = paste0("models/", s, "_ens"),   
+              setting = list(method='weighted', stat = 'AUC'),
+              overwrite=TRUE)
+  assign(paste0(s, "_ens"), 
+         mod)
+}
+```
+Lets plot them.
+```{r}
+raster::plot(Primula_scandinavica_ens, main = "Habitat suitability fo Primula scandinavica")
+raster::plot(oDat[oDat$species == "Primula_scandinavica",], add=T, cex = 0.2)
+```
+The realised nishe is considerably smaller then the desirable or fundamental nishe.
+
+```{r}
+raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability fo Carex simpliciuscula")
+raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
+```
+
+
+
+For most people I think presence-absence is more understandable than probability of occurence. Let's use mean threshold value for defining p-a and plot a discrete map instead.
+## Presence-absence map
+```{r}
+for(i in 1:length(mySpecies3)){
+  s <- as.name(paste0(unique(oDat$species)[i], "_m"))
+  ev <- paste0(unique(oDat$species)[i], "_ev")
+  assign(ev, sdm::getEvaluation(eval(s), 
+                   stat = c('AUC', 'threshold'))
+  )
+}
+```
+
+```{r}
+for(i in 1:length(mySpecies3)){
+  ens    <- get(paste0(unique(oDat$species)[i], "_ens"))
+  ev     <- get(paste0(unique(oDat$species)[i], "_ev"))
+  s      <- paste0(unique(oDat$species)[i], "_pa")
+  
+  
+  ens[]   <- ifelse(ens[] >= mean(ev$threshold), 1, 0)
+  assign(s, ens)
+}
+```
+
+Get a nice outline of Norway
+```{r}
+source('R/norway.R')
+ol <- norway(lonlat = F)
+```
+
+Lets choose some colours
+```{r}
+c1 <- colorRampPalette(c("white", "grey30"))
+```
+
+Ready to plot
+```{r}
+raster::plot(Primula_scandinavica_pa, col=c1(2), main = "Predicted presence of Primula scandinavica")
+plot(ol, lwd=1, border='black', add=TRUE)
+
+# rasterVis::levelplot(Primula_scandinavica_pa)  # let me try this in a little bit...
+```
+
+```{r}
+raster::plot(Carex_simpliciuscula_pa, col=c1(2), main = "Predicted presence of Carex simpliciuscula")
+plot(ol, lwd=1, border='black', add=TRUE)
+
 ```
 
 

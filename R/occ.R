@@ -10,7 +10,7 @@
 #' @import dismo
 #' @import sp
 #' @import mapview
-#' @export
+
 
 
 
@@ -30,45 +30,45 @@
 #gbif_citation(occ_download_meta(odLichen))# GBIF Occurrence Download https://doi.org/10.15468/dl.pl144i Accessed from R via rgbif (https://github.com/ropensci/rgbif) on 2018-11-26"
 
 
-occ <- function(){
+
 
 
 # test download
-dismo::gbif("Botrychium", "lanceolatum", download = F)
-dismo::gbif("Primula", "scandinavica", download = F)
+#dismo::gbif("Botrychium", "lanceolatum", download = F)
+#dismo::gbif("Primula", "scandinavica", download = F)
 
-ps <- dismo::gbif("Primula", "scandinavica", download = T, geo = T, sp = F)
+#ps <- dismo::gbif("Primula", "scandinavica", download = T, geo = T, sp = F)
 
 # this will require a for loop
 
 #class(ps)
 
 # backup
-PS <- ps
+#PS <- ps
 
 # remove NA's
-w <- which(is.na(ps$lon))
-if(length(w) != 0) ps <- ps[-w,]
-w <- which(is.na(ps$lat))
-if(length(w) != 0) ps <- ps[-w,]
-w <- which(ps$lon == 0)
-if(length(w) != 0) ps <- ps[-w,]
-w <- which(ps$lat == 0)
-if(length(w) != 0) ps <- ps[-w,]
+#w <- which(is.na(ps$lon))
+#if(length(w) != 0) ps <- ps[-w,]
+#w <- which(is.na(ps$lat))
+#if(length(w) != 0) ps <- ps[-w,]
+#w <- which(ps$lon == 0)
+#if(length(w) != 0) ps <- ps[-w,]
+#w <- which(ps$lat == 0)
+#if(length(w) != 0) ps <- ps[-w,]
 
 
-ps$species <- 'Primula scandinavica'
-ps <- ps[,c("lon", "lat","species")]
-head(ps)
-sp::coordinates(ps) <- ~lon + lat
-sp::proj4string(ps) <- sp::proj4string(raster::raster())
-#library(mapview)
-mapview::mapview(ps, 
-                 map.types = c("Esri.WorldShadedRelief",
-                               "Esri.WorldImagery"),
-                 cex = 5, lwd = 0,
-                 alpha.regions = 0.5,
-                 col.regions = "blue")
+#ps$species <- 'Primula scandinavica'
+#ps <- ps[,c("lon", "lat","species")]
+#head(ps)
+#sp::coordinates(ps) <- ~lon + lat
+#sp::proj4string(ps) <- sp::proj4string(raster::raster())
+##library(mapview)
+#mapview::mapview(ps, 
+#                 map.types = c("Esri.WorldShadedRelief",
+#                               "Esri.WorldImagery"),
+#                 cex = 5, lwd = 0,
+#                 alpha.regions = 0.5,
+#                 col.regions = "blue")#
 
 #library(margrittr) # forward pipe
 #leaflet::leaflet(data = bl) %>% 
@@ -79,4 +79,3 @@ mapview::mapview(ps,
 #                   radius = 0.05)
 
 
-}

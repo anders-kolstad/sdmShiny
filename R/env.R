@@ -11,7 +11,7 @@
 
 
 
-env <- function(){
+#env <- function(){
 # env <- raster::stack("data/large/PredictorVariables.grd")
  # plot(env[[1]])
 #download.file(url,
@@ -33,4 +33,4 @@ env <- function(){
 # occ_download_meta(odLichen)
 # gbif_citation(occ_download_meta(odLichen))# GBIF Occurrence Download https://doi.org/10.15468/dl.pl144i Accessed from R via rgbif (https://github.com/ropensci/rgbif) on 2018-11-26"
 
-}
+#}
