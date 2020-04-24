@@ -17,7 +17,8 @@
     -   [Get species list](#get-species-list)
     -   [Occurence data](#occurence-data)
     -   [SDM](#sdm)
-        -   [Ensable](#ensable)
+        -   [Ensemble](#ensemble)
+    -   [Presence-absence map](#presence-absence-map)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 sdmShiny
@@ -29,7 +30,7 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-04-23 20:50:13 CEST"
+#> [1] "2020-04-24 15:48:10 CEST"
 ```
 
 This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
@@ -635,14 +636,87 @@ Now we have all we need to make a model. We can then save the model object and u
 library(sdm)
 #> Loading required package: sp
 #> sdm 1.0-82 (2020-02-03)
+```
+
+``` r
+library(sdm)
 for(i in 1:length(mySpecies3)){
-  s <- unique(oDat$species)[i]
-  d <- oDat[oDat$species == s,]
-  assign(paste0(s, "_d"), sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
+  s    <- unique(oDat$species)[i]
+  s2   <- paste0(s, "_d")
+  d    <- oDat[oDat$species == s,]
+  dat  <- sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
                    train = d,
                    predictors = myIVs,
-                   bg = list(n=nrow(d), method = "gRandom")))
+                   bg = list(n=nrow(d), method = "gRandom"))
+  
+  # assign(s2, dat)
+  sdm::write.sdm(dat, paste0("models/sdmData/", s2))
 }
+```
+
+This takes the names over to the gbif approved names (Kobresia to Carex). Perhaps it's for the best. (Hmm, no, that'll make it more difficult to find the model object in the folders when there are tens of models. )
+
+This code could bring the sdmData back in into the environment, but I don't need it now:
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s    <- unique(oDat$species)[i]
+  s2   <- paste0(s, "_d")
+  s3   <- paste0("models/sdmData/", s, "_d.sdd")
+  assign(s2, sdm::read.sdm(s3))
+}
+```
+
+We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less becaus ethere are very few data points for some of the species, like P scandinavica. Esp. since records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3\*5 = 15 models per species. It takes about 1-2 min to run this.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  
+  s       <- unique(oDat$species)[i]
+  file1   <- paste0("models/sdmData/", s, "_d.sdd")
+  obj     <- paste0(s, "_m")
+  file2   <- paste0("models/sdmModels/", obj)
+  d      <- sdm::read.sdm(file1)
+  
+  mod <- sdm::sdm(.~.,
+              data = d, 
+              methods = c('glm', 'gam', 'rf'),   
+              replication = c('boot'), n=5)     
+  
+  sdm::write.sdm(mod, file2)
+  
+}
+```
+
+*Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- get(paste0(s, "_d"))
+  mod <- sdm::sdm(paste(s)~.,     # also tried noquote, eval, and  print(quote = F)...
+              data = d, 
+              methods = c('glm', 'gam', 'rf'),   
+              replication = c('boot'), n=3)
+    assign(paste0(s, "_mxxx"), 
+         mod)
+}
+```
+
+I get some warning about the number of unique data points being five or less. But the models ran at least. Lets bring them back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s      <- unique(oDat$species)[i]
+  s2     <- paste0(s, "_m")
+  file   <- paste0("models/sdmModels/", s2, ".sdm")
+  
+  assign(s2, sdm::read.sdm(file))
+}
+```
+
+``` r
+Carex_simpliciuscula_m
 #> Loading required package: dismo
 #> Loading required package: raster
 #> Loading required package: gbm
@@ -683,53 +757,14 @@ for(i in 1:length(mySpecies3)){
 #> The following objects are masked from 'package:raster':
 #> 
 #>     buffer, rotated
-```
-
-This takes the names over to the gbif approved names (Kobresia to Carex). Perhaps it's for the best.
-
-We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 3 times. I will use 3 methods as well, resulting in 9 models per species. Could do more, but that will take longer.
-
-``` r
-for(i in 1:length(mySpecies3)){
-  s <- unique(oDat$species)[i]
-  d <- get(paste0(s, "_d"))
-  mod <- sdm::sdm(.~.,
-              data = d, 
-              methods = c('glm', 'gam', 'rf'),   
-              replication = c('boot'), n=3)
-    assign(paste0(s, "_m"), 
-         mod)
-}
-#> Loading required package: parallel
-```
-
-*Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
-
-``` r
-for(i in 1:length(mySpecies3)){
-  s <- unique(oDat$species)[i]
-  d <- get(paste0(s, "_d"))
-  mod <- sdm::sdm(paste(s)~.,     # also tried noquote, eval, and  print(quote = F)...
-              data = d, 
-              methods = c('glm', 'gam', 'rf'),   
-              replication = c('boot'), n=3)
-    assign(paste0(s, "_mxxx"), 
-         mod)
-}
-```
-
-I get some warning about the number of unique data points being five or less. But the models ran at least.
-
-``` r
-Carex_simpliciuscula_m
 #> class                                 : sdmModels 
 #> ======================================================== 
 #> number of species                     :  1 
 #> number of modelling methods           :  3 
 #> names of modelling methods            :  glm, gam, rf 
 #> replicate.methods (data partitioning) :  bootstrap 
-#> number of replicates (each method)    :  3 
-#> toral number of replicates per model  :  3 (per species) 
+#> number of replicates (each method)    :  5 
+#> toral number of replicates per model  :  5 (per species) 
 #> ------------------------------------------
 #> model run success percentage (per species)  :
 #> ------------------------------------------
@@ -748,9 +783,9 @@ Carex_simpliciuscula_m
 #> 
 #> methods    :     AUC     |     COR     |     TSS     |     Deviance 
 #> -------------------------------------------------------------------------
-#> glm        :     0.89    |     0.72    |     0.68    |     0.78     
-#> gam        :     0.91    |     0.76    |     0.74    |     0.76     
-#> rf         :     0.97    |     0.88    |     0.88    |     0.41
+#> glm        :     0.88    |     0.73    |     0.71    |     0.75     
+#> gam        :     0.92    |     0.78    |     0.75    |     0.67     
+#> rf         :     0.98    |     0.89    |     0.89    |     0.38
 ```
 
 ``` r
@@ -761,15 +796,15 @@ Primula_scandinavica_m
 #> number of modelling methods           :  3 
 #> names of modelling methods            :  glm, gam, rf 
 #> replicate.methods (data partitioning) :  bootstrap 
-#> number of replicates (each method)    :  3 
-#> toral number of replicates per model  :  3 (per species) 
+#> number of replicates (each method)    :  5 
+#> toral number of replicates per model  :  5 (per species) 
 #> ------------------------------------------
 #> model run success percentage (per species)  :
 #> ------------------------------------------
 #> method          Primula_scandinavica     
 #> ------------------------------ 
 #> glm        :            100   %
-#> gam        :            100   %
+#> gam        :            80   %
 #> rf         :            100   %
 #> 
 #> ###################################################################
@@ -781,16 +816,115 @@ Primula_scandinavica_m
 #> 
 #> methods    :     AUC     |     COR     |     TSS     |     Deviance 
 #> -------------------------------------------------------------------------
-#> glm        :     0.79    |     0.49    |     0.53    |     1.23     
-#> gam        :     0.87    |     0.72    |     0.78    |     5.91     
-#> rf         :     0.92    |     0.75    |     0.82    |     0.75
+#> glm        :     0.9     |     0.67    |     0.73    |     0.83     
+#> gam        :     0.91    |     0.81    |     0.85    |     2.88     
+#> rf         :     0.96    |     0.82    |     0.86    |     0.54
 ```
 
-Note: Here I would also like to get a plot of the combined/avergaed variable importance.
+I would also like to get a plot of the combined/averaged variable importance.
 
-### Ensable
+``` r
+# create empty list
+varimp <- list()
 
-Lets put the 3\*3 models together and make a map of the current habitat suitability, using ensamble.
+# list of IVs (different for alpine and forest species). 
+# Make sure to put them in the correct order. 
+# Find the order with > getVarImp(yourModel, id = 1)@varImportance
+IV <- c("temp", "prec", "SoilpH", "TundraHerbivores")
+
+# Create an empty varimp table
+df1 <- data.frame(variables = IV,
+                  corTest = as.numeric(NA),
+                  AUCtest = as.numeric(NA))
+                  
+for(i in 1:length(mySpecies3)){
+  s      <- unique(oDat$species)[i]
+  s2     <- paste0(s, "_m")
+  d      <- get(s2)
+  tab    <- d@run.info
+
+for(t in 1:max(tab$modelID)){
+  r <- length(varimp)+1
+  ifelse(tab$success[t]==TRUE,
+           varimp[[r]]          <-sdm::getVarImp(d,id=t)@varImportance,
+           varimp[[r]]          <- df1)
+         
+           varimp[[r]]$species  <-tab$species[t]
+           varimp[[r]]$method   <-tab$method[t]
+           varimp[[r]]$repid    <-tab$replicationID[t]      
+         
+   #if(tab$success[t]==FALSE) return(print(paste('Model failiure run ',t)))
+}
+}
+
+varimp<-do.call('rbind',varimp)
+rm(s, s2, d, tab, df1)
+source("R/se.R")
+varimpmean <- aggregate(data = varimp,
+                        corTest ~ species + variables,
+                        FUN = function(x) c(mean = mean(x, na.rm=T), se = se(x)))
+varimpmean <- do.call(data.frame, varimpmean)
+head(varimpmean)
+#>                species variables corTest.mean  corTest.se
+#> 1 Carex_simpliciuscula      prec   0.28362000 0.017490872
+#> 2 Primula_scandinavica      prec   0.15690000 0.056500131
+#> 3 Carex_simpliciuscula    SoilpH   0.04272667 0.009848319
+#> 4 Primula_scandinavica    SoilpH   0.26930714 0.044434147
+#> 5 Carex_simpliciuscula      temp   0.49239333 0.034551953
+#> 6 Primula_scandinavica      temp   0.26907143 0.051043095
+```
+
+Changing the variable nems for axis tick labels
+
+``` r
+varimpmean$variables <- plyr::revalue(varimpmean$variables, c(
+              prec         = "Årlig nedbørsmengde\n
+                              Annual precipitation",
+              SoilpH       = "pH i jorden\nSoil pH",
+              temp         = "Gjennomsnittemperatur i varmeste kvartal\n
+                              Mean temperature in warmenst quarter",
+              TundraHerbivores = "Tetthet av sau og reinsdyr\n
+                                  Sheep and reindeer densities"))
+```
+
+We can make one plot per species and show it in the app. That way the user will know what slider should induce the biggest effect.
+
+``` r
+library(ggplot2)
+
+for(i in 1:length(unique(varimpmean$species))){
+  
+  d <- varimpmean[varimpmean$species==unique(varimpmean$species)[i],]
+  s <- paste0("./models/varimp/",
+              unique(varimpmean$species)[i],
+              ".png")
+  
+  p <- ggplot2::ggplot(data = d)+
+  geom_bar(aes(y = corTest.mean, 
+               x = variables, 
+               fill = variables), 
+           stat = "identity", 
+           colour = "black")+
+  coord_flip()+
+  ylab("Variabelviktigheten\nVariable importance")+
+  xlab("")+
+  theme_minimal()+
+  theme(axis.text.y = element_text(size = 10))+
+  theme(legend.position="none")+
+  geom_errorbar(aes(x = variables, ymin=corTest.mean-corTest.se, ymax=corTest.mean+corTest.se), width=.2)
+
+  png(filename = s,
+    width = 380, height = 380, units = "px")
+  print(p)
+  dev.off()
+}
+```
+
+![Alt text](models/varimp/Primula_scandinavica.png) ![Alt text](models/varimp/Carex_simpliciuscula.png)
+
+### Ensemble
+
+Lets put the 5\*3 models together and make a map of the current habitat suitability, using ensamble.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -799,9 +933,9 @@ for(i in 1:length(mySpecies3)){
   
   mod <- sdm::ensemble(d,
               newdata = myIVs, 
-              filename = paste0("models/", s, "_ens"),   
+              filename = paste0("models/predictions", s, "_ens"),   
               setting = list(method='weighted', stat = 'AUC'),
-              overwrite=TRUE)
+              overwrite=TRUE)     # DON'T WORK!
   assign(paste0(s, "_ens"), 
          mod)
 }
@@ -810,20 +944,25 @@ for(i in 1:length(mySpecies3)){
 Lets plot them.
 
 ``` r
-raster::plot(Primula_scandinavica_ens, main = "Habitat suitability fo Primula scandinavica")
+Primula_scandinavica_ens <- raster::raster("models/predictions/Primula_scandinavica_ens.grd")
+raster::plot(Primula_scandinavica_ens, main = "Habitat suitability for Primula scandinavica")
 raster::plot(oDat[oDat$species == "Primula_scandinavica",], add=T, cex = 0.2)
 ```
 
-<img src="man/figures/README-unnamed-chunk-48-1.png" width="100%" /> The realised nishe is considerably smaller then the desirable or fundamental nishe.
+<img src="man/figures/README-unnamed-chunk-54-1.png" width="100%" /> The realised nishe is considerably smaller then the desirable or fundamental nishe.
 
 ``` r
-raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability fo Carex simpliciuscula")
+Carex_simpliciuscula_ens <- raster::raster("models/predictions/Carex_simpliciuscula_ens.grd")
+raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability for Carex simpliciuscula")
 raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
 ```
 
-<img src="man/figures/README-unnamed-chunk-49-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-55-1.png" width="100%" />
 
-For most people I think presence-absence is more understandable than probability of occurence. Let's use mean threshold value for defining p-a and plot a discrete map instead. \#\# Presence-absence map
+For most people I think presence-absence is more understandable than probability of occurence. Let's use mean threshold value for defining p-a and plot a discrete map instead.
+
+Presence-absence map
+--------------------
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -847,36 +986,27 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-Get a nice outline of Norway
+First I though of using the 'presence' areas as shaded areas inside an outline of Norway. I could for exampl get an outline of Norway like this:
 
 ``` r
 source('R/norway.R')
 ol <- norway(lonlat = F)
 ```
 
+But I think it's easier to look at the details of the map when there are no outlines. The coast of Norway is too uneven and adds too much noise.
+
 Lets choose some colours
 
 ``` r
-c1 <- colorRampPalette(c("white", "grey30"))
+c1 <- colorRampPalette(c("grey", "blue"))
 ```
 
 Ready to plot
 
-``` r
-raster::plot(Primula_scandinavica_pa, col=c1(2), main = "Predicted presence of Primula scandinavica")
-plot(ol, lwd=1, border='black', add=TRUE)
-```
+work in progress...
 
-<img src="man/figures/README-unnamed-chunk-54-1.png" width="100%" />
+Primula\_scandinavica\_pa2 &lt;- raster::ratify(Primula\_scandinavica\_pa) lev &lt;- raster::levels(Primula\_scandinavica\_pa2)\[\[1\]\] lev$pa &lt;- c("Absent", "Present") levels(Primula\_scandinavica\_pa2) &lt;- lev rasterVis::levelplot(Primula\_scandinavica\_pa2)
 
-``` r
+raster::plot(nor, col = 'grey') raster::plot(Primula\_scandinavica\_pa, col=c1(2), main = "Predicted presence of Primula scandinavica") raster::plot(Primula\_scandinavica\_pa2, col=c1(2), main = "Predicted presence of Primula scandinavica")
 
-# rasterVis::levelplot(Primula_scandinavica_pa)  # let me try this in a little bit...
-```
-
-``` r
-raster::plot(Carex_simpliciuscula_pa, col=c1(2), main = "Predicted presence of Carex simpliciuscula")
-plot(ol, lwd=1, border='black', add=TRUE)
-```
-
-<img src="man/figures/README-unnamed-chunk-55-1.png" width="100%" />
+\`\`\`
