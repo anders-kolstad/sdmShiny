@@ -146,6 +146,7 @@ ratlcp[['Forest_Productivity']] <-
 levels(PredVars$Forest_Productivity) <- ratlcp
 rasterVis::levelplot(PredVars$Forest_Productivity)
 ```
+Ares of NA where there's no forest.
 
 ###### Forest type
 ```{r}
@@ -162,13 +163,38 @@ ratlct[['ForestType']] <-
 levels(PredVars$Forest_Type) <- ratlct
 rasterVis::levelplot(PredVars$Forest_Type)
 ```
+Subset and keep only the layers we'll need.
+```{r}
+PredVars <- PredVars[[c(21:23, 25, 31, 39, 47)]]
+names(PredVars)
+```
+Let's look at the other ones as well.
+```{r}
+par(mfrow = c(2,2))
+raster::plot(PredVars$SoilpH, main = "Soil pH")
+raster::plot(PredVars$moose1999, main = "Moose")
+raster::plot(PredVars$red_deer1999, main = "Red deer")
+raster::plot(PredVars$roe_deer1999, main = "Roe deer")
+```
+Reset par
+```{r}
+par(mfrow = c(1,1))
+```
+Land cover and soil pH need some fixing. We can use any of the cervid data to mask them I think.
+```{r}
+PredVars$SoilpH <- raster::mask(PredVars$SoilpH, PredVars$roe_deer1999)
+raster::plot(PredVars$SoilpH)
+```
+Better. And now land cover.
+```{r}
+PredVars$Land_Cover <- raster::mask(PredVars$Land_Cover, PredVars$roe_deer1999)
+rasterVis::levelplot(PredVars$Land_Cover)
+```
+Colours are terrible, but it's motly forest and open natural vegetation, with some lines of NA's cutting across. Should be fine.
 
 ### Worldclim data and DTM
 Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
 First, let's delete the old bioclim variables, and also the cervid density data for all years exept the one we're going to use, which is 1999 (closest to the mean data of the species occurence records). 
-```{r}
-PredVars <- PredVars[[c(21:23, 25, 31, 39, 47)]]
-```
 
 ```{r, eval = T}
 # first tile
@@ -250,7 +276,7 @@ PredVars2          <- raster::projectRaster(PredVars, crs = newproj, method='bil
 reindeerSheep2     <- raster::projectRaster(reindeerSheep, PredVars2[[1]], method='bilinear')
 NorClimElev2       <- raster::projectRaster(NorClimElev, PredVars2[[1]], method='bilinear')
 IV                 <- raster::stack(PredVars2, reindeerSheep2, NorClimElev2)
-# writeRaster(IV, 'data/IV', overwrite=TRUE) # 83 MB
+# writeRaster(IV, 'data/IV', overwrite=TRUE) # 76 MB
 myIVs              <- raster:: stack('data/IV.grd')
 names(myIVs)
 ```
@@ -510,7 +536,7 @@ for(i in 1:length(mySpecies3)){
                    bg = list(n=nrow(d), method = "gRandom"))
   
   # assign(s2, dat)
-  sdm::write.sdm(dat, paste0("models/sdmData/", s2))
+  sdm::write.sdm(dat, paste0("models/sdmData/", s2), overwrite=TRUE)
 }
 
 ```
@@ -543,7 +569,7 @@ for(i in 1:length(mySpecies3)){
               methods = c('glm', 'gam', 'rf'),   
               replication = c('boot'), n=5)     
   
-  sdm::write.sdm(mod, file2)
+  sdm::write.sdm(mod, file2, overwrite=TRUE)
   
 }
 
@@ -563,7 +589,7 @@ for(i in 1:length(mySpecies3)){
 ```
 
 
-I get some warning about the number of unique data points being five or less. But the models ran at least. Lets bring them back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
+I get some warning about the number of unique data points being five or less: *"Iteration limit reached without full convergence - check carefullyThe response has five or fewer unique values.  Are you sure you want to do regression?"* But the models ran at least. Lets bring them back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
 ```{r}
 for(i in 1:length(mySpecies3)){
   s      <- unique(oDat$species)[i]
@@ -582,7 +608,9 @@ Carex_simpliciuscula_m
 ```{r}
 Primula_scandinavica_m
 ```
+The gams didn't too to well. Only one out of five converged.
 
+### Variable importance
 I would also like to get a plot of the combined/averaged variable importance.
 ```{r}
 # create empty list
@@ -677,7 +705,7 @@ for(i in 1:length(unique(varimpmean$species))){
 ![Alt text](models/varimp/Carex_simpliciuscula.png)
 
 ### Ensemble
-Lets put the 5*3 models together and make a map of the current habitat suitability, using ensamble.
+Lets put the 5*3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
 ```{r, eval=FALSE}
 for(i in 1:length(mySpecies3)){
   s <- unique(oDat$species)[i]
@@ -685,9 +713,9 @@ for(i in 1:length(mySpecies3)){
   
   mod <- sdm::ensemble(d,
               newdata = myIVs, 
-              filename = paste0("models/predictions", s, "_ens"),   
+              filename = paste0("models/predictions/", s, "_ens"),   
               setting = list(method='weighted', stat = 'AUC'),
-              overwrite=TRUE)     # DON'T WORK!
+              overwrite=TRUE)     
   assign(paste0(s, "_ens"), 
          mod)
 }
@@ -705,10 +733,12 @@ Carex_simpliciuscula_ens <- raster::raster("models/predictions/Carex_simpliciusc
 raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability for Carex simpliciuscula")
 raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
 ```
+There are some white spots on the maps, the same areas for both. I need to figure out why.... 
+
 
 For most people I think presence-absence is more understandable than probability of occurence. Let's use mean threshold value for defining p-a and plot a discrete map instead.
 
-## Presence-absence map
+### Presence-absence map
 
 ```{r}
 for(i in 1:length(mySpecies3)){
@@ -732,39 +762,52 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-First I though of using the 'presence' areas as shaded areas inside an outline of Norway. I could for exampl get an outline of Norway like this:
-```{r, eval=FALSE}
-source('R/norway.R')
-ol <- norway(lonlat = F)
-```
 
-But I think it's easier to look at the details of the map when there are no outlines. The coast of Norway is too uneven and adds too much noise.
-
-
-
-Lets choose some colours
 ```{r}
-c1 <- colorRampPalette(c("grey", "blue"))
-```
-
-Ready to plot
-
-work in progress...
-
-
-
 Primula_scandinavica_pa2 <- raster::ratify(Primula_scandinavica_pa)
 lev <- raster::levels(Primula_scandinavica_pa2)[[1]] 
 lev$pa <- c("Absent", "Present")
 levels(Primula_scandinavica_pa2) <- lev
-rasterVis::levelplot(Primula_scandinavica_pa2)
-
-raster::plot(nor, col = 'grey')
-raster::plot(Primula_scandinavica_pa, col=c1(2), main = "Predicted presence of Primula scandinavica")
-raster::plot(Primula_scandinavica_pa2, col=c1(2), main = "Predicted presence of Primula scandinavica")
-
-
+source("R/norway.R")
+nor <- norway(lonlat = FALSE)
+library(latticeExtra)
+rasterVis::levelplot(Primula_scandinavica_pa2, 
+                   margin=F,
+                   main="Primula scandinavica",
+                   scales=list(draw=F),
+                   col.regions= c("grey", "blue"))+
+  layer(sp::sp.polygons(nor),col=grey(0.5))
 ```
+There are areas in white which there is no class and I'm not sure why...
+```{r}
+Carex_simpliciuscula_pa2 <- raster::ratify(Carex_simpliciuscula_pa)
+lev <- raster::levels(Carex_simpliciuscula_pa2)[[1]] 
+lev$pa <- c("Absent", "Present")
+levels(Carex_simpliciuscula_pa2) <- lev
+
+rasterVis::levelplot(Carex_simpliciuscula_pa2, 
+                   margin=F,
+                   main="Carex simpliciuscula",
+                   scales=list(draw=F),
+                   col.regions= c("grey", "blue"))+
+  layer(sp::sp.polygons(nor),col=grey(0.5))
+```
+They are the same areas for the Carex species. They are not NA cells, just absent cells.
+```{r}
+Carex_simpliciuscula_pa2
+```
+
+I can use one of the original models to make a prediction and see if the problem precists.
+```{r}
+p <- raster::predict(model = Carex_simpliciuscula_m[[1]], 
+                     object = myIVs, filename =  'models/predictions/CsGLM1.img', overwrite=TRUE)
+raster::plot(p)
+```
+It's still there, so it's not the ensemble step.
+
+
+
+
 
 
 
