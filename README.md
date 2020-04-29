@@ -8,18 +8,27 @@
         -   [Existing raster stacks](#existing-raster-stacks)
             -   [The 'alpine paper'](#the-alpine-paper)
             -   [The 'forest' paper](#the-forest-paper)
-                -   [Ratify categorical layers](#ratify-categorical-layers)
-                    -   [Land cover](#land-cover)
-                    -   [Forest productivity](#forest-productivity)
-                    -   [Forest type](#forest-type)
         -   [Worldclim data and DTM](#worldclim-data-and-dtm)
-            -   [Combine all IVs](#combine-all-ivs)
+    -   [Change projection and stack](#change-projection-and-stack)
+        -   [Modify IVs](#modify-ivs)
+            -   [Clip](#clip)
+            -   [Ratify categorical layers](#ratify-categorical-layers)
+    -   [Write IV file](#write-iv-file)
+        -   [Ratify v2](#ratify-v2)
+            -   [Forest productivity](#forest-productivity)
+            -   [Land cover](#land-cover)
+            -   [Forest type](#forest-type)
     -   [Get species list](#get-species-list)
     -   [Occurence data](#occurence-data)
     -   [SDM](#sdm)
+        -   [SDM-data](#sdm-data)
+        -   [5*3 models We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3*5 = 15 models per species. It takes about 1 min to run this.](#models-we-dont-have-any-independent-test-data-so-ill-use-bootstrapping-to-partition-test-data-and-ill-do-that-5-times.-i-shouldnt-do-much-less-because-there-are-very-few-data-points-for-some-of-the-species-like-p-scandinavica.-i-think-records-from-inside-the-same-1km-cells-will-be-counted-as-duplicates-and-removed.-i-will-use-3-methods-as-well-resulting-in-35-15-models-per-species.-it-takes-about-1-min-to-run-this.)
+            -   [Ensemble](#ensemble)
+            -   [Presence-absence map](#presence-absence-map)
+        -   [Best candidate model](#best-candidate-model)
+        -   [Replicated single method](#replicated-single-method)
+        -   [Response curves](#response-curves)
         -   [Variable importance](#variable-importance)
-        -   [Ensemble](#ensemble)
-        -   [Presence-absence map](#presence-absence-map)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 sdmShiny
@@ -31,7 +40,7 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-04-27 07:04:15 CEST"
+#> [1] "2020-04-29 08:59:03 CEST"
 ```
 
 This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
@@ -85,7 +94,7 @@ names(IV)
 #> [1] "TundraHerbivores"  "MeanTempWarmQuart"
 ```
 
-The first layer is the combined metabolic biomas of reindeer (wild and semi-domesticated) and sheep from the year 1999. I will use this later, but not the worldclim variable (see below). The resolution is 10km.
+The first layer is the combined metabolic biomas of reindeer (wild and semi-domesticated) and sheep from the year 1999. I will use this later, but not the worldclim variable (see below). The resolution is 10km, which is larger than for the following layers.
 
 ``` r
 #reindeerSheep <- IV[[1]]
@@ -104,125 +113,11 @@ From another of James' projects there is a file already collated with environmen
 ``` r
 PredVars <- raster::stack("data/large/PredictorVariables.grd")
 names(PredVars)[20:25]<-c('Elevation','Land_Cover','Forest_Type','Forest_Productivity','Vegetation_Type','SoilpH')
-names(PredVars)
-#>  [1] "bio1_16"             "bio2_16"             "bio3_16"            
-#>  [4] "bio4_16"             "bio5_16"             "bio6_16"            
-#>  [7] "bio7_16"             "bio8_16"             "bio9_16"            
-#> [10] "bio10_16"            "bio11_16"            "bio12_16"           
-#> [13] "bio13_16"            "bio14_16"            "bio15_16"           
-#> [16] "bio16_16"            "bio17_16"            "bio18_16"           
-#> [19] "bio19_16"            "Elevation"           "Land_Cover"         
-#> [22] "Forest_Type"         "Forest_Productivity" "Vegetation_Type"    
-#> [25] "SoilpH"              "moose1949"           "moose1959"          
-#> [28] "moose1969"           "moose1979"           "moose1989"          
-#> [31] "moose1999"           "moose2009"           "moose2015"          
-#> [34] "red_deer1949"        "red_deer1959"        "red_deer1969"       
-#> [37] "red_deer1979"        "red_deer1989"        "red_deer1999"       
-#> [40] "red_deer2009"        "red_deer2015"        "roe_deer1949"       
-#> [43] "roe_deer1959"        "roe_deer1969"        "roe_deer1979"       
-#> [46] "roe_deer1989"        "roe_deer1999"        "roe_deer2009"       
-#> [49] "roe_deer2015"
-```
 
-Info
-
--   This file does not contain reindeer, muskox, or livestock densities.
--   ar50 maps are land use classes, including forest productivity (skogbon) and dominating forest tree species (treslag)
--   bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publication (bio15 is used in the 'alpine paper').
--   resolution is 1km
--   geonode is soil pH (soilgrids.org). The units are ph \* 10.
-
-``` r
+# geonode is soil pH (soilgrids.org). The units are ph * 10.
 PredVars$SoilpH <- PredVars$SoilpH/10
-```
 
-##### Ratify categorical layers
-
-I need to convert some layers from continous to categorial.
-
-###### Land cover
-
-``` r
-PredVars$Land_Cover <- raster::ratify(PredVars$Land_Cover) # essentially just as.factor(x)
-ratlc               <- raster::levels(PredVars$Land_Cover)[[1]]
-ratlc$Land_Cover <- c("Built-up",
-                                    "Agricultural",
-                                    "Forest",
-                                    "Open-natural vegetation",
-                                    "Mires",
-                                    "Glaciers/Ice/Snow",
-                                    "Freshwater",
-                                    "Sea",
-                                    "NA")
-levels(PredVars$Land_Cover) <- ratlc
-rasterVis::levelplot(PredVars$Land_Cover)
-```
-
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
-
-###### Forest productivity
-
-``` r
-raster::levels(raster::ratify(PredVars$Forest_Productivity))
-#> [[1]]
-#>   ID
-#> 1 11
-#> 2 12
-#> 3 13
-#> 4 18
-#> 5 98
-#> 6 99
-```
-
-We don't want levels 98 and 99. Class 99 = 'ikke registrert'.
-
-``` r
-PredVars$Forest_Productivity[PredVars$Forest_Productivity>18]<-NA
-PredVars$Forest_Productivity <- 
-  raster::ratify(PredVars$Forest_Productivity)
-
-ratlcp <- raster::levels(PredVars$Forest_Productivity)[[1]]
-ratlcp[['Forest_Productivity']] <- 
-  c('Unproductive',
-    'Low',
-    'Medium',
-    'High')
-
-levels(PredVars$Forest_Productivity) <- ratlcp
-rasterVis::levelplot(PredVars$Forest_Productivity)
-```
-
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" /> Ares of NA where there's no forest.
-
-###### Forest type
-
-``` r
-raster::levels(raster::ratify(PredVars$Forest_Type))
-#> [[1]]
-#>   ID
-#> 1 31
-#> 2 32
-#> 3 33
-#> 4 39
-#> 5 98
-#> 6 99
-```
-
-Deleting class 98 and 99 as above, but also 39 although I', not sure what that is...
-
-``` r
-PredVars$Forest_Type[PredVars$Forest_Type>33]<-NA
-PredVars$Forest_Type<-raster::ratify(PredVars$Forest_Type)
-ratlct<-raster::levels(PredVars$Forest_Type)[[1]]
-ratlct[['ForestType']] <-
-  c('Coniferous','Deciduous','Mixed')
-levels(PredVars$Forest_Type) <- ratlct
-rasterVis::levelplot(PredVars$Forest_Type)
-```
-
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" /> Subset and keep only the layers we'll need.
-
-``` r
+# Subset and keep only the layers we'll need.
 PredVars <- PredVars[[c(21:23, 25, 31, 39, 47)]]
 names(PredVars)
 #> [1] "Land_Cover"          "Forest_Type"         "Forest_Productivity"
@@ -230,37 +125,11 @@ names(PredVars)
 #> [7] "roe_deer1999"
 ```
 
-Let's look at the other ones as well.
+Info
 
-``` r
-par(mfrow = c(2,2))
-raster::plot(PredVars$SoilpH, main = "Soil pH")
-raster::plot(PredVars$moose1999, main = "Moose")
-raster::plot(PredVars$red_deer1999, main = "Red deer")
-raster::plot(PredVars$roe_deer1999, main = "Roe deer")
-```
-
-<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" /> Reset par
-
-``` r
-par(mfrow = c(1,1))
-```
-
-Land cover and soil pH need some fixing. We can use any of the cervid data to mask them I think.
-
-``` r
-PredVars$SoilpH <- raster::mask(PredVars$SoilpH, PredVars$roe_deer1999)
-raster::plot(PredVars$SoilpH)
-```
-
-<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" /> Better. And now land cover.
-
-``` r
-PredVars$Land_Cover <- raster::mask(PredVars$Land_Cover, PredVars$roe_deer1999)
-rasterVis::levelplot(PredVars$Land_Cover)
-```
-
-<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" /> Colours are terrible, but it's motly forest and open natural vegetation, with some lines of NA's cutting across. Should be fine.
+-   ar50 maps are land use classes, including forest productivity (skogbon) and dominating forest tree species (treslag)
+-   bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publication (bio15 is used in the 'alpine paper'). I'm remaking these variables belowe. so don't need to keep these.
+-   resolution is 1km
 
 ### Worldclim data and DTM
 
@@ -275,7 +144,7 @@ Norbioclim <- raster::stack("data/large/Norbioclim.grd")
 raster::plot(Norbioclim)
 ```
 
-<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
 ``` r
 # second tile
@@ -286,7 +155,7 @@ Norbioclim1 <- raster::stack("data/large/Norbioclim1.grd")
 raster::plot(Norbioclim1)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
 
 ``` r
 #third tile
@@ -297,7 +166,7 @@ Norbioclim2 <- raster::stack("data/large/Norbioclim2.grd")
 raster::plot(Norbioclim2)
 ```
 
-<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 Then I merge these together.
 
@@ -307,7 +176,7 @@ mergclim1<-raster::merge(mergclim,Norbioclim2)
 raster::plot(mergclim1)
 ```
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 Now I get a DTM for Norway to be used as an IV, but also to crop the wordclim data.
 
@@ -319,7 +188,7 @@ Norelev <- raster::stack("data/large/Norelev.grd")
 raster::plot(Norelev)
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
 Then I crop the worldclim data
 
@@ -328,7 +197,7 @@ cropclim<-raster::crop(mergclim1,Norelev)
 raster::plot(cropclim)
 ```
 
-<img src="man/figures/README-unnamed-chunk-22-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
 
 That took care of the extent. Now I want to put all cells that are outside the DTM as NA also in the climate layers
 
@@ -337,7 +206,7 @@ Norclimdat<-raster::mask(cropclim,Norelev)
 raster::plot(Norclimdat)
 ```
 
-<img src="man/figures/README-unnamed-chunk-23-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
 
 I can put these two together.
 
@@ -357,33 +226,246 @@ NorClimElev
 #> max values :  164, 2958, 2292
 ```
 
-#### Combine all IVs
-
-Now I can get all the IV layers on the same projection and stack them in a single file.
+Temperature seems to be x10. However, the algebra stuff crashes in knitr for some reason
 
 ``` r
-names(PredVars)
-PredVars@crs       # +proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs 
-reindeerSheep@crs  # +proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
-NorClimElev@crs    # +proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0 
+#NorClimElev$temp <- NorClimElev$temp/10
+#plot(NorClimElev$temp)
 ```
+
+Change projection and stack
+---------------------------
 
 I'm going to use UTM32 projection because the maps look better (more familiar) than with latlon. For the worldclim data and the reindeerSheep data there will also be a resampling. I'm also going to delete some layers I don't need and save it all as IV (overwriting previous name).
 
 ``` r
 newproj <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
-PredVars2          <- raster::projectRaster(PredVars, crs = newproj, method='bilinear')
-reindeerSheep2     <- raster::projectRaster(reindeerSheep, PredVars2[[1]], method='bilinear')
-NorClimElev2       <- raster::projectRaster(NorClimElev, PredVars2[[1]], method='bilinear')
-IV                 <- raster::stack(PredVars2, reindeerSheep2, NorClimElev2)
+
+# I need to use nearest neighbour for the categorical layers.
+cats               <- raster::stack(PredVars$Land_Cover, PredVars$Forest_Type, PredVars$Forest_Productivity) 
+cats               <- raster::projectRaster(cats, crs = newproj, method='ngb')
+
+num                <- raster::stack(PredVars$SoilpH,
+                                    PredVars$moose1999,
+                                    PredVars$red_deer1999,
+                                    PredVars$roe_deer1999)
+num                <- raster::projectRaster(num, crs = newproj, method='bilinear')
+
+# use 'num' as template to ensure same extent when resampling
+reindeerSheep2     <- raster::projectRaster(reindeerSheep, num[[1]], method='bilinear')  
+NorClimElev2       <- raster::projectRaster(NorClimElev, num[[1]], method='bilinear')
+
+# Combine
+IV                 <- raster::stack(cats, num, reindeerSheep2, NorClimElev2)
+```
+
+### Modify IVs
+
+Let's first look at some of them.
+
+``` r
+par(mfrow = c(2,2))
+raster::plot(IV$Land_Cover, main = "Land cover")
+raster::plot(IV$SoilpH, main = "Soil pH")
+raster::plot(IV$Forest_Type, main = "Forest type")
+raster::plot(IV$Forest_Productivity, main = "Forest productivity")
+```
+
+<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" /> These all need trimming and all exept pH need to be ratified.
+
+``` r
+par(mfrow = c(2,2))
+raster::plot(IV$moose1999, main = "Moose")
+raster::plot(IV$red_deer1999, main = "Red deer")
+raster::plot(IV$roe_deer1999, main = "Roe deer")
+```
+
+<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" /> Cervid data seems fine.
+
+#### Clip
+
+We can use any of the cervid data to mask the other layers.
+
+``` r
+IV$SoilpH               <- raster::mask(IV$SoilpH,              IV$roe_deer1999)
+IV$Land_Cover           <- raster::mask(IV$Land_Cover,          IV$roe_deer1999)
+IV$Forest_Type          <- raster::mask(IV$Forest_Type,         IV$roe_deer1999)
+IV$Forest_Productivity  <- raster::mask(IV$Forest_Productivity, IV$roe_deer1999)
+```
+
+These should now be trimmed to the outline of Norway.
+
+``` r
+par(mfrow = c(2,2))
+raster::plot(IV$Land_Cover, main = "Land cover")
+raster::plot(IV$SoilpH, main = "Soil pH")
+raster::plot(IV$Forest_Type, main = "Forest type")
+raster::plot(IV$Forest_Productivity, main = "Forest productivity")
+```
+
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" /> Reset par.
+
+``` r
+par(mfrow = c(1,1))
+```
+
+#### Ratify categorical layers
+
+This should naturally happen at this stage, but the RAT, raster attributes table, doesn't carry with the writeRaster function, so I need to do it after reading the file from disc.
+
+Write IV file
+-------------
+
+``` r
 # writeRaster(IV, 'data/IV', overwrite=TRUE) # 76 MB
 myIVs              <- raster:: stack('data/IV.grd')
+rm(cats, IV, NorClimElev, Norclimdat, Norbioclim2, Norbioclim, Norbioclim1, NorClimElev2, num, PredVars, reindeerSheep, reindeerSheep2)
 names(myIVs)
 #>  [1] "Land_Cover"          "Forest_Type"         "Forest_Productivity"
 #>  [4] "SoilpH"              "moose1999"           "red_deer1999"       
 #>  [7] "roe_deer1999"        "TundraHerbivores"    "temp"               
 #> [10] "prec"                "elev"
 ```
+
+### Ratify v2
+
+So now I can ratify.
+
+#### Forest productivity
+
+``` r
+raster::levels(raster::ratify(myIVs$Forest_Productivity))
+#> [[1]]
+#>   ID
+#> 1 11
+#> 2 12
+#> 3 13
+#> 4 18
+#> 5 98
+#> 6 99
+```
+
+We don't want levels 98 and 99. Class 99 = 'ikke registrert'.
+
+``` r
+myIVs$Forest_Productivity[myIVs$Forest_Productivity>18]<-NA
+myIVs$Forest_Productivity <-   raster::ratify(myIVs$Forest_Productivity)
+
+ratlcp <- raster::levels(myIVs$Forest_Productivity)[[1]]
+ratlcp[['Forest_Productivity']] <- 
+  c('Unproductive',
+    'Low',
+    'Medium',
+    'High')
+
+levels(myIVs$Forest_Productivity) <- ratlcp
+cols2 <- colorRampPalette(c("lightgreen", "darkgreen" ))(4)
+rasterVis::levelplot(myIVs$Forest_Productivity, main = "Forest productivity", col.regions = cols2)
+```
+
+<img src="man/figures/README-unnamed-chunk-23-1.png" width="100%" /> Ares of NA where there's no forest.
+
+#### Land cover
+
+For this one, let's also look at some statistics
+
+``` r
+Land_Cover_stats <- raster::ratify(myIVs$Land_Cover, count = T)
+ratlc               <- raster::levels(Land_Cover_stats)[[1]]
+ratlc$Land_Cover <- c("Built-up",
+                                    "Agricultural",
+                                    "Forest",
+                                    "Open-natural vegetation",
+                                    "Mires",
+                                    "Glaciers/Ice/Snow",
+                                    "Freshwater",
+                                    "Sea",
+                                    "NA")
+ratlc
+#>   ID  COUNT              Land_Cover
+#> 1 10   1435                Built-up
+#> 2 20   9482            Agricultural
+#> 3 30 138689                  Forest
+#> 4 50 144319 Open-natural vegetation
+#> 5 60  10278                   Mires
+#> 6 70   2443       Glaciers/Ice/Snow
+#> 7 81  11452              Freshwater
+#> 8 82  12467                     Sea
+#> 9 99   3237                      NA
+```
+
+Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also Built-up I think (red-liste plants are not found on parking lots that often.) his should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
+
+``` r
+myIVs$Land_Cover[myIVs$Land_Cover == 10 |
+                   myIVs$Land_Cover == 70 |
+                   myIVs$Land_Cover == 81 |
+                   myIVs$Land_Cover == 82] <- 98
+myIVs$Land_Cover <- raster::ratify(myIVs$Land_Cover)
+ratlc               <- raster::levels(myIVs$Land_Cover)[[1]]
+ratlc$Land_Cover <- c(
+                                    "Agricultural",
+                                    "Forest",
+                                    "Open-natural vegetation",
+                                    "Mires",
+                                    
+                                    
+                                    "others",
+                                    "NA")
+ratlc
+#>   ID              Land_Cover
+#> 1 20            Agricultural
+#> 2 30                  Forest
+#> 3 50 Open-natural vegetation
+#> 4 60                   Mires
+#> 5 98                  others
+#> 6 99                      NA
+```
+
+``` r
+
+levels(myIVs$Land_Cover) <- ratlc
+cols <- colorRampPalette(c(
+                           "yellow", 
+                           "darkgreen",
+                           "tan",
+                           "lightblue",
+                           "black",
+                           "white"
+                           ))
+rasterVis::levelplot(myIVs$Land_Cover, main = "Land cover", col.regions = cols)
+```
+
+<img src="man/figures/README-unnamed-chunk-26-1.png" width="100%" />
+
+#### Forest type
+
+``` r
+raster::levels(raster::ratify(myIVs$Forest_Type))
+#> [[1]]
+#>   ID
+#> 1 31
+#> 2 32
+#> 3 33
+#> 4 39
+#> 5 98
+#> 6 99
+```
+
+Deleting class 98 and 99 as above, but also 39 although I', not sure what that is...
+
+``` r
+myIVs$Forest_Type[myIVs$Forest_Type>33]<-NA
+myIVs$Forest_Type<-raster::ratify(myIVs$Forest_Type)
+ratlct<-raster::levels(myIVs$Forest_Type)[[1]]
+ratlct[['ForestType']] <-
+  c('Coniferous','Deciduous','Mixed')
+levels(myIVs$Forest_Type) <- ratlct
+cols3 <- colorRampPalette(c("darkgreen", "orange", "blue" ))
+rasterVis::levelplot(myIVs$Forest_Type, main= "Forest type", col.regions = cols3)
+```
+
+<img src="man/figures/README-unnamed-chunk-28-1.png" width="100%" />
 
 Get species list
 ----------------
@@ -437,15 +519,15 @@ for(i in 1:length(mySpecies2)){
 
 nOccurences_df
 #>                    species nOccurences
-#> 1   Botrychium lanceolatum        4980
+#> 1   Botrychium lanceolatum        5053
 #> 2       Comastoma tenellum        6321
-#> 3   Gentianella campestris       53393
-#> 4  Kobresia simpliciuscula        3393
+#> 3   Gentianella campestris       53391
+#> 4  Kobresia simpliciuscula        3392
 #> 5     Primula scandinavica         321
-#> 6       Pseudorchis albida       20971
-#> 7      Pulsatilla vernalis       23674
-#> 8    Buglossoides arvensis       42231
-#> 9       Anisantha sterilis      113405
+#> 6       Pseudorchis albida       20958
+#> 7      Pulsatilla vernalis       23679
+#> 8    Buglossoides arvensis       42200
+#> 9       Anisantha sterilis      113335
 #> 10       Sorbus lancifolia         101
 ```
 
@@ -455,6 +537,7 @@ For the next part I will use two species with a quite low number of records to r
 
 ``` r
 mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
+# write.csv(mySpecies3, 'data/species_list.csv')
 ```
 
 For fun. lets see what these plants look like.
@@ -484,8 +567,8 @@ for(i in 1:length(mySpecies3)){
                                         sp = F) 
   )
 }
-#> 3393 records found
-#> 0-300-600-900-1200-1500-1800-2100-2400-2700-3000-3300-3393 records downloaded
+#> 3392 records found
+#> 0-300-600-900-1200-1500-1800-2100-2400-2700-3000-3300-3392 records downloaded
 #> 321 records found
 #> 0-300-321 records downloaded
 ```
@@ -537,7 +620,7 @@ A dataframe called qc tells us what has happened.
 ``` r
 qc
 #>                   Species lon_is_NA lat_NA_when_lon_not lon_is_zero
-#> 1 Kobresia simpliciuscula       787                   0           0
+#> 1 Kobresia simpliciuscula       786                   0           0
 #> 2    Primula scandinavica       172                   0           0
 #>   lat_zero_when_lon_not
 #> 1                     0
@@ -571,7 +654,7 @@ mapview::mapview(Kobresia_simpliciuscula,
                  col.regions = "blue")
 ```
 
-<img src="man/figures/README-unnamed-chunk-37-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-39-1.png" width="100%" />
 
 ``` r
 mapview::mapview(Primula_scandinavica, 
@@ -582,7 +665,7 @@ mapview::mapview(Primula_scandinavica,
                  col.regions = "blue")
 ```
 
-<img src="man/figures/README-unnamed-chunk-38-1.png" width="100%" /> First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway.
+<img src="man/figures/README-unnamed-chunk-40-1.png" width="100%" /> First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway.
 
 ``` r
 # outline <- norway()
@@ -591,7 +674,7 @@ outline <- readRDS("data/large/outline_Norway.RData")
 raster::plot(outline)
 ```
 
-<img src="man/figures/README-unnamed-chunk-39-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-41-1.png" width="100%" />
 
 Now to clip away occurences outside this polygon (can take a few minutes)
 
@@ -620,7 +703,7 @@ mapview::mapview(Kobresia_simpliciuscula,
                  col.regions = "blue")
 ```
 
-<img src="man/figures/README-unnamed-chunk-41-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-43-1.png" width="100%" />
 
 ``` r
 mapview::mapview(Primula_scandinavica, 
@@ -631,7 +714,7 @@ mapview::mapview(Primula_scandinavica,
                  col.regions = "blue")
 ```
 
-<img src="man/figures/README-unnamed-chunk-42-1.png" width="100%" /> Looks like it. Now we just need to get this over to UTM32 to match the IV data, and save it on file.
+<img src="man/figures/README-unnamed-chunk-44-1.png" width="100%" /> Looks like it. Now we just need to get this over to UTM32 to match the IV data, and save it on file.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -658,16 +741,16 @@ oDat <- readRDS('data/large/oDat.RData')
 ```
 
 ``` r
-raster::plot(myIVs[[10]])
+raster::plot(myIVs$Forest_Productivity)
 raster::plot(oDat,add=T)
 ```
 
-<img src="man/figures/README-unnamed-chunk-45-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-47-1.png" width="100%" />
 
 SDM
 ---
 
-Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll skipp the two least important variables land\_use\_classes and bio15. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify smultiple species.
+Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll dropp bio15 as it was so unimportant. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify multiple species.
 
 ``` r
 library(sdm)
@@ -675,8 +758,9 @@ library(sdm)
 #> sdm 1.0-82 (2020-02-03)
 ```
 
+### SDM-data
+
 ``` r
-library(sdm)
 for(i in 1:length(mySpecies3)){
   s    <- unique(oDat$species)[i]
   s2   <- paste0(s, "_d")
@@ -684,7 +768,7 @@ for(i in 1:length(mySpecies3)){
   dat  <- sdm::sdmData(species~temp+prec+SoilpH+TundraHerbivores,
                    train = d,
                    predictors = myIVs,
-                   bg = list(n=nrow(d), method = "gRandom"))
+                   bg = list(n=1000, method = "gRandom"))
   
   # assign(s2, dat)
   sdm::write.sdm(dat, paste0("models/sdmData/", s2), overwrite=TRUE)
@@ -704,7 +788,7 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less becaus ethere are very few data points for some of the species, like P scandinavica. Esp. since records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3\*5 = 15 models per species. It takes about 1-2 min to run this.
+### 5*3 models We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3*5 = 15 models per species. It takes about 1 min to run this.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -717,13 +801,15 @@ for(i in 1:length(mySpecies3)){
   
   mod <- sdm::sdm(.~.,
               data = d, 
-              methods = c('glm', 'gam', 'rf'),   
+              methods = c('glm', 'gam', 'maxent'),   
               replication = c('boot'), n=5)     
   
   sdm::write.sdm(mod, file2, overwrite=TRUE)
   
 }
 ```
+
+Warning 1: *prediction from a rank-deficient fit may be misleading* Warning 2: *The response has five or fewer unique values. Are you sure you want to do regression?*
 
 *Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
 
@@ -740,7 +826,7 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-I get some warning about the number of unique data points being five or less: *"Iteration limit reached without full convergence - check carefullyThe response has five or fewer unique values. Are you sure you want to do regression?"* But the models ran at least. Lets bring them back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
+Let's bring the models back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -798,7 +884,7 @@ Carex_simpliciuscula_m
 #> ======================================================== 
 #> number of species                     :  1 
 #> number of modelling methods           :  3 
-#> names of modelling methods            :  glm, gam, rf 
+#> names of modelling methods            :  glm, gam, maxent 
 #> replicate.methods (data partitioning) :  bootstrap 
 #> number of replicates (each method)    :  5 
 #> toral number of replicates per model  :  5 (per species) 
@@ -809,7 +895,7 @@ Carex_simpliciuscula_m
 #> ------------------------------ 
 #> glm        :            100   %
 #> gam        :            100   %
-#> rf         :            100   %
+#> maxent     :            100   %
 #> 
 #> ###################################################################
 #> model Mean performance (per species), using test dataset (generated using partitioning):
@@ -820,9 +906,9 @@ Carex_simpliciuscula_m
 #> 
 #> methods    :     AUC     |     COR     |     TSS     |     Deviance 
 #> -------------------------------------------------------------------------
-#> glm        :     0.91    |     0.76    |     0.75    |     0.71     
-#> gam        :     0.9     |     0.76    |     0.73    |     0.91     
-#> rf         :     0.97    |     0.88    |     0.89    |     0.43
+#> glm        :     0.75    |     0.52    |     0.52    |     1.08     
+#> gam        :     0.88    |     0.7     |     0.66    |     0.87     
+#> maxent     :     0.9     |     0.71    |     0.69    |     0.9
 ```
 
 ``` r
@@ -831,7 +917,7 @@ Primula_scandinavica_m
 #> ======================================================== 
 #> number of species                     :  1 
 #> number of modelling methods           :  3 
-#> names of modelling methods            :  glm, gam, rf 
+#> names of modelling methods            :  glm, gam, maxent 
 #> replicate.methods (data partitioning) :  bootstrap 
 #> number of replicates (each method)    :  5 
 #> toral number of replicates per model  :  5 (per species) 
@@ -841,8 +927,8 @@ Primula_scandinavica_m
 #> method          Primula_scandinavica     
 #> ------------------------------ 
 #> glm        :            100   %
-#> gam        :            20   %
-#> rf         :            100   %
+#> gam        :            100   %
+#> maxent     :            100   %
 #> 
 #> ###################################################################
 #> model Mean performance (per species), using test dataset (generated using partitioning):
@@ -853,16 +939,430 @@ Primula_scandinavica_m
 #> 
 #> methods    :     AUC     |     COR     |     TSS     |     Deviance 
 #> -------------------------------------------------------------------------
-#> glm        :     0.9     |     0.76    |     0.85    |     4.05     
-#> gam        :     0.89    |     0.78    |     0.75    |     5.69     
-#> rf         :     0.96    |     0.87    |     0.94    |     0.46
+#> glm        :     0.77    |     0.3     |     0.49    |     0.52     
+#> gam        :     0.87    |     0.56    |     0.66    |     0.81     
+#> maxent     :     0.87    |     0.48    |     0.64    |     0.7
 ```
 
-The gams didn't too to well. Only one out of five converged.
+GAMs fail when land class is included. RF is not perhaps suitable for such low sample sizes, and when I change from rf to maxent as the third model I removed large white areas in the ensamble map.
+
+``` r
+(ev1 <- sdm::getEvaluation(Primula_scandinavica_m, stat = c("AUC", "threshold")))
+#>    modelID   AUC  threshold
+#> 1        1 0.791 0.17428732
+#> 2        2 0.756 0.08328167
+#> 3        3 0.714 0.14566953
+#> 4        4 0.761 0.24131305
+#> 5        5 0.804 0.09338707
+#> 6        6 0.889 0.34990089
+#> 7        7 0.907 0.01904153
+#> 8        8 0.920 0.02030771
+#> 9        9 0.865 0.03371827
+#> 10      10 0.768 0.23451925
+#> 11      11 0.899 0.19887266
+#> 12      12 0.863 0.50493407
+#> 13      13 0.858 0.36808664
+#> 14      14 0.836 0.25700560
+#> 15      15 0.904 0.66059893
+```
+
+Note the large variation in the threshold value. Density plots show many models have problems discriminating. The maxent models 11-15 are perhaps the most stable. Note also that you can have a 'good model' with high AUC and at the same time a threshold close to 1. Then something is wrong. A very variable threshold value makes it risky to make presense absense maps as I do below.
+
+``` r
+(ev2 <- sdm::getEvaluation(Carex_simpliciuscula_m, stat = c("AUC", "threshold")))
+#>    modelID   AUC threshold
+#> 1        1 0.732 0.4640570
+#> 2        2 0.777 0.5327341
+#> 3        3 0.744 0.5760212
+#> 4        4 0.747 0.5755588
+#> 5        5 0.739 0.5536726
+#> 6        6 0.861 0.5699635
+#> 7        7 0.882 0.6817512
+#> 8        8 0.899 0.7605437
+#> 9        9 0.873 0.6225270
+#> 10      10 0.900 0.6673734
+#> 11      11 0.880 0.5872504
+#> 12      12 0.893 0.5812584
+#> 13      13 0.921 0.6306559
+#> 14      14 0.897 0.5963424
+#> 15      15 0.898 0.5239558
+```
+
+The Carex models are much more stable. Lets compare.
+
+``` r
+df <- rbind(ev1, ev2)
+df <- data.frame(species   = rep(c("Primula", "Carex"), each = 15),
+                 threshold = df$threshold,
+                 AUC       = df$AUC )
+par(mfrow = c(1,2))
+boxplot(threshold~species, data = df)
+boxplot(AUC~species, data = df)
+```
+
+<img src="man/figures/README-unnamed-chunk-58-1.png" width="100%" /> I would not make a presense absense map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUC is more stable, some some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
+
+#### Ensemble
+
+Lets put the 5\*3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  d <- get(paste0(s, "_m"))
+  
+  mod <- sdm::ensemble(d,
+              newdata = myIVs, 
+              filename = paste0("models/predictions/", s, "_ens.img"), overwrite=TRUE,   
+              setting = list(method='weighted', stat = 'AUC')
+              )     
+  assign(paste0(s, "_ens"), 
+         mod)
+}
+```
+
+Lets plot them.
+
+``` r
+Primula_scandinavica_ens <- raster::raster("models/predictions/Primula_scandinavica_ens.img")
+raster::plot(Primula_scandinavica_ens, main = "Habitat suitability for Primula scandinavica")
+raster::plot(oDat[oDat$species == "Primula_scandinavica",], add=T, cex = 0.8, pch = 1)
+```
+
+<img src="man/figures/README-unnamed-chunk-60-1.png" width="100%" /> The realised nishe is considerably smaller then the desirable or fundamental nishe.
+
+``` r
+Carex_simpliciuscula_ens <- raster::raster("models/predictions/Carex_simpliciuscula_ens.img")
+raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability for Carex simpliciuscula")
+raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
+```
+
+<img src="man/figures/README-unnamed-chunk-61-1.png" width="100%" />
+
+For most people I think presence-absence is more understandable than probability of occurence (but see discussion about threshold values above). Let's use mean threshold value for defining p-a and plot a discrete map instead. Also, I like to think of this as habitat suitability rather than distribution per se, and we can name the categories 'suitable' or 'unsuitable' rather then 'present' and 'absent'. Then the next map of 'collonisation' and 'extinction' could be classes as 'new habitat' and 'lost habitat'.
+
+#### Presence-absence map
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s <- as.name(paste0(unique(oDat$species)[i], "_m"))
+  ev <- paste0(unique(oDat$species)[i], "_ev")
+  assign(ev, sdm::getEvaluation(eval(s), 
+                   stat = c('AUC', 'threshold'))
+  )
+}
+```
+
+``` r
+for(i in 1:length(mySpecies3)){
+  ens    <- get(paste0(unique(oDat$species)[i], "_ens"))
+  ev     <- get(paste0(unique(oDat$species)[i], "_ev"))
+  s      <- paste0(unique(oDat$species)[i], "_pa")
+  
+  
+  ens[]   <- ifelse(ens[] >= mean(ev$threshold), 1, 0)
+  assign(s, ens)
+}
+```
+
+``` r
+Primula_scandinavica_pa2 <- raster::ratify(Primula_scandinavica_pa)
+lev <- raster::levels(Primula_scandinavica_pa2)[[1]] 
+lev$pa <- c("Unsuitable habitat", "Suitable habitat")
+levels(Primula_scandinavica_pa2) <- lev
+source("R/norway.R")
+nor <- norway(lonlat = FALSE)
+library(latticeExtra)
+#> Loading required package: lattice
+rasterVis::levelplot(Primula_scandinavica_pa2, 
+                   margin=F,
+                   main="Primula scandinavica",
+                   scales=list(draw=F),
+                   col.regions= c("grey", "blue"))+
+  layer(sp::sp.polygons(nor),col=grey(0.5))+
+  layer(sp::sp.points(oDat[oDat$species == "Primula_scandinavica",], pch = 1, cex = 0.8, col = "black", lwd = 0.5, alpha = 0.7))
+```
+
+<img src="man/figures/README-unnamed-chunk-64-1.png" width="100%" /> This map has changes drastically between runs!!, indicating that 5\*3 is not enough for it to stabilise.
+
+``` r
+Carex_simpliciuscula_pa2 <- raster::ratify(Carex_simpliciuscula_pa)
+lev <- raster::levels(Carex_simpliciuscula_pa2)[[1]] 
+lev$pa <- c("Unsuitable habitat", "Suitable habitat")
+levels(Carex_simpliciuscula_pa2) <- lev
+
+rasterVis::levelplot(Carex_simpliciuscula_pa2, 
+                   margin=F,
+                   main="Carex simpliciuscula",
+                   scales=list(draw=F),
+                   col.regions= c("grey", "blue"))+
+  layer(sp::sp.polygons(nor),col=grey(0.5))+
+layer(sp::sp.points(oDat[oDat$species == "Carex_simpliciuscula",], pch = 1, cex = 0.8, col = "black", lwd = 0.5, alpha = 0.7))
+```
+
+<img src="man/figures/README-unnamed-chunk-65-1.png" width="100%" /> Nice map. Easy to read and understand to laymen I think.
+
+### Best candidate model
+
+To make predictions from the 5-3 models we need to run the ensamble function again, this time with altered IVs in the newdata argument. The function is probably too slow to run on the fly. We could choose one method, eg maxent, and just use that for all species, and with only one replication. The we could use the predict function in raster which will be quicker. Or we can look at these 15 models we have generated and choose the best one from there. That would be a bit safer.
+
+``` r
+Primula_scandinavica_ev
+#>    modelID   AUC  threshold
+#> 1        1 0.791 0.17428732
+#> 2        2 0.756 0.08328167
+#> 3        3 0.714 0.14566953
+#> 4        4 0.761 0.24131305
+#> 5        5 0.804 0.09338707
+#> 6        6 0.889 0.34990089
+#> 7        7 0.907 0.01904153
+#> 8        8 0.920 0.02030771
+#> 9        9 0.865 0.03371827
+#> 10      10 0.768 0.23451925
+#> 11      11 0.899 0.19887266
+#> 12      12 0.863 0.50493407
+#> 13      13 0.858 0.36808664
+#> 14      14 0.836 0.25700560
+#> 15      15 0.904 0.66059893
+```
+
+Based on AUC, model nr ...
+
+``` r
+which.max(Primula_scandinavica_ev$AUC)
+#> [1] 8
+```
+
+is the best for the Primula. But the threshold is super low.
+
+``` r
+Carex_simpliciuscula_ev
+#>    modelID   AUC threshold
+#> 1        1 0.732 0.4640570
+#> 2        2 0.777 0.5327341
+#> 3        3 0.744 0.5760212
+#> 4        4 0.747 0.5755588
+#> 5        5 0.739 0.5536726
+#> 6        6 0.861 0.5699635
+#> 7        7 0.882 0.6817512
+#> 8        8 0.899 0.7605437
+#> 9        9 0.873 0.6225270
+#> 10      10 0.900 0.6673734
+#> 11      11 0.880 0.5872504
+#> 12      12 0.893 0.5812584
+#> 13      13 0.921 0.6306559
+#> 14      14 0.897 0.5963424
+#> 15      15 0.898 0.5239558
+```
+
+Based on AUC, model nr ...
+
+    #> [1] 13
+
+is the best for the Carex.
+
+Let's compare the ensemble with the best single model.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  s <- unique(oDat$species)[i]
+  s2 <- paste0(s, "_m")
+  s3 <- get(paste0(s, "_ev"))
+  file <- paste0("models/sdmModels/", s, "_bcm")
+  best <- s3$modelID[s3$AUC == max(s3$AUC)]
+  mod <- get(s2)
+  mod2 <- mod[[best]]
+  sdm::write.sdm(mod2, file, overwrite=TRUE)
+
+  
+  
+  mod3 <- raster::predict(mod2,
+              object = myIVs, 
+              filename = paste0("models/predictions/", s, "_best.img"), 
+              overwrite=TRUE)
+                
+  assign(paste0(s, "_best"), 
+         mod3)
+}
+```
+
+``` r
+par(mfrow=c(2,2))
+raster::plot(Primula_scandinavica_best, main = "Best candidate model\nfor Primula")   
+raster::plot(Primula_scandinavica_ens, main = "Ensemble model\nfor Primula")
+raster::plot(Carex_simpliciuscula_best, main = "Best candidate model\nfor Carex")   
+raster::plot(Carex_simpliciuscula_ens, main = "Ensemble model\nfor Carex")
+```
+
+<img src="man/figures/README-unnamed-chunk-71-1.png" width="100%" /> They're quite different.
+
+The following script makes these comparisons with presence absence map, but thats not so important.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  p    <- get(paste0(unique(oDat$species)[i], "_best"))
+  ev     <- get(paste0(unique(oDat$species)[i], "_ev"))
+  th     <- ev$threshold[ev$AUC == max(s3$AUC)]
+  s      <- paste0(unique(oDat$species)[i], "_pab")
+  
+  
+  p[]   <- ifelse(p[] >= mean(ev$threshold), 1, 0)
+  assign(s, p)
+}
+
+
+# Find divergent areas for the Primula
+
+ps <- Primula_scandinavica_pa2 - Primula_scandinavica_pab
+ps <- raster::ratify(ps)
+ratlcp <- raster::levels(ps)[[1]]
+ratlcp[['errors']] <- 
+  c('new',
+    'same',
+    'lost')
+levels(ps) <- ratlcp
+
+
+# Find divergent areas for the Carex
+
+cs <- Carex_simpliciuscula_pa2 - Carex_simpliciuscula_pab
+cs <- raster::ratify(cs)
+ratlcp <- raster::levels(cs)[[1]]
+ratlcp[['errors']] <- 
+  c('new',
+    'same',
+    'lost')
+levels(cs) <- ratlcp
+
+
+cols <- colorRampPalette(c("lightgreen", "white", "red" ))
+
+# save as pictures to save knitr time
+png("figures/comparisons/Primula.png", height = 380, width = 380, units = "px")
+rasterVis::levelplot(ps, col.regions = cols, main = "Primula")+
+  layer(sp::sp.polygons(nor),col=grey(0.5))
+dev.off()
+png("figures/comparisons/Carex.png", height = 380, width = 380, units = "px")
+rasterVis::levelplot(cs, col.regions = cols, main = "Carex")+
+  layer(sp::sp.polygons(nor),col=grey(0.5))
+dev.off()
+```
+
+![Alt txt](figures/comparisons/Primula.png) ![Alt txt](figures/comparisons/Carex.png) In conclusion I think we ideally should to replicate the partitioning because of the low sample sizes, but if that takes too long to process it not impossible to do the 'single best' approach, ie to find the best out of 15 candidate models and use that. This is better than choosing on method, ie maxent, and one of a few replicates, because our test showed that on some runs actually the GAMs were better. Then should use the probabilities and not the presence-absence maps, because of the large variation in the threshold value between model runs. If the 'single best models differs from the ensemble that may not be a problem as the change in predictions when altering the IVs (the input values) should be qualitatively similar, which is good enough for our purpose. Also, the ensemble prediction includes a lot of crap models so it's not neccessarily better.
+
+### Replicated single method
+
+This approach chooses one method, maxent, and does five replicated partitionings, and thn the raster::predict function to make maps. I'll keep these models to to a speed test later in the actuall Shiny app on the io server.
+
+``` r
+for(i in 1:length(mySpecies3)){
+  
+  s       <- unique(oDat$species)[i]
+  file1   <- paste0("models/sdmData/", s, "_d.sdd")
+  obj     <- paste0(s, "_ms")
+  obj2     <- paste0(s, "_5maxent")
+  file2   <- paste0("models/sdmModels/", obj)
+  d      <- sdm::read.sdm(file1)
+  
+  mod <- sdm::sdm(.~.,
+              data = d, 
+              methods = 'maxent',   
+              replication = c('boot'), n=5)     
+  
+  sdm::write.sdm(mod, file2, overwrite=TRUE)
+  assign(obj, mod)
+  
+  mod2 <- raster::predict(mod,
+              object = myIVs,
+              mean = T,
+              filename = paste0("models/predictions/", obj2, ".img"), 
+              overwrite=TRUE)
+  assign(obj2, mod2)
+
+  ev     <- sdm::getEvaluation(mod, stat = "threshold")
+  th     <- mean(ev$threshold)
+  s      <- paste0(unique(oDat$species)[i], "_5maxent_pa")
+  mod2[] <- ifelse(mod2[] >= th, 1, 0)
+  assign(s, mod2)
+
+}
+#> Loading required package: parallel
+```
+
+``` r
+raster::plot(Primula_scandinavica_5maxent)
+```
+
+<img src="man/figures/README-unnamed-chunk-74-1.png" width="100%" />
+
+``` r
+getEvaluation(Primula_scandinavica_ms)
+#>   modelID   AUC   COR  Deviance   TSS
+#> 1       1 0.813 0.468 0.5899888 0.613
+#> 2       2 0.880 0.491 0.8187185 0.663
+#> 3       3 0.903 0.502 0.5409577 0.747
+#> 4       4 0.827 0.347 1.0693747 0.590
+#> 5       5 0.865 0.395 0.9102192 0.593
+```
+
+Compare 'best candidate' with 'five best maxent'
+
+``` r
+diffpa <- Primula_scandinavica_best - Primula_scandinavica_5maxent_pa
+raster::plot(diffpa)
+```
+
+<img src="man/figures/README-unnamed-chunk-76-1.png" width="100%" /> Differences for sure. Close to max difference in Finnmark fo example.
+
+### Response curves
+
+Let make response curve plots for each species and save those as well
+
+``` r
+
+
+for(i in 1:length(mySpecies3)){
+  s      <- unique(oDat$species)[i]
+  s2     <- paste0(s, "_m")
+  s3     <- paste0("models/rcurves/", s, "_rcurves.png")
+  d      <- get(s2)
+  d2     <- d
+ 
+p <- sdm::rcurve(d2, ylab="Habitategnethet\nHabitat suitability", 
+                 xlab = "",
+                 main = "")
+# not sure how to rename the variables:
+#labs <- c("Temperature", "Precipitation", 
+#           "Soil pH", "Sheep and reindeer")
+# p2 <- p + facet_grid(labeller = labeller(variable = labs))
+
+png(filename = s3,
+    width = 480, height = 380, units = "px")
+  print(p)
+  dev.off()
+
+}
+#> Loading required package: ggplot2
+#> 
+#> Attaching package: 'ggplot2'
+#> The following object is masked from 'package:latticeExtra':
+#> 
+#>     layer
+#> The following object is masked from 'package:kernlab':
+#> 
+#>     alpha
+#> The following object is masked from 'package:randomForest':
+#> 
+#>     margin
+#> The id argument is not specified; The modelIDs of 15 successfully fitted models are assigned to id...!
+#> The id argument is not specified; The modelIDs of 15 successfully fitted models are assigned to id...!
+```
+
+![Alt text](models/rcurves/Primula_scandinavica_rcurves.png) ![Alt text](models/rcurves/Carex_simpliciuscula_rcurves.png)
 
 ### Variable importance
 
-I would also like to get a plot of the combined/averaged variable importance.
+I would also like to get a plot of the variable importance. This script uses the combined/averaged impirtances from the 5\*3 models.
 
 ``` r
 # create empty list
@@ -907,12 +1407,12 @@ varimpmean <- aggregate(data = varimp,
 varimpmean <- do.call(data.frame, varimpmean)
 head(varimpmean)
 #>                species variables corTest.mean  corTest.se
-#> 1 Carex_simpliciuscula      prec   0.33632000 0.018987174
-#> 2 Primula_scandinavica      prec   0.10008182 0.036686774
-#> 3 Carex_simpliciuscula    SoilpH   0.04399333 0.008732727
-#> 4 Primula_scandinavica    SoilpH   0.31303636 0.074824753
-#> 5 Carex_simpliciuscula      temp   0.44743333 0.025987178
-#> 6 Primula_scandinavica      temp   0.39357273 0.071323466
+#> 1 Carex_simpliciuscula      prec    0.3956200 0.015210185
+#> 2 Primula_scandinavica      prec    0.5914267 0.046246521
+#> 3 Carex_simpliciuscula    SoilpH    0.0354000 0.005247094
+#> 4 Primula_scandinavica    SoilpH    0.2610533 0.038254301
+#> 5 Carex_simpliciuscula      temp    0.3300467 0.020798081
+#> 6 Primula_scandinavica      temp    0.1030133 0.023270557
 ```
 
 Changing the variable nems for axis tick labels
@@ -955,134 +1455,10 @@ for(i in 1:length(unique(varimpmean$species))){
   geom_errorbar(aes(x = variables, ymin=corTest.mean-corTest.se, ymax=corTest.mean+corTest.se), width=.2)
 
   png(filename = s,
-    width = 380, height = 380, units = "px")
+    width = 480, height = 380, units = "px")
   print(p)
   dev.off()
 }
 ```
 
 ![Alt text](models/varimp/Primula_scandinavica.png) ![Alt text](models/varimp/Carex_simpliciuscula.png)
-
-### Ensemble
-
-Lets put the 5\*3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
-
-``` r
-for(i in 1:length(mySpecies3)){
-  s <- unique(oDat$species)[i]
-  d <- get(paste0(s, "_m"))
-  
-  mod <- sdm::ensemble(d,
-              newdata = myIVs, 
-              filename = paste0("models/predictions/", s, "_ens"),   
-              setting = list(method='weighted', stat = 'AUC'),
-              overwrite=TRUE)     
-  assign(paste0(s, "_ens"), 
-         mod)
-}
-```
-
-Lets plot them.
-
-``` r
-Primula_scandinavica_ens <- raster::raster("models/predictions/Primula_scandinavica_ens.grd")
-raster::plot(Primula_scandinavica_ens, main = "Habitat suitability for Primula scandinavica")
-raster::plot(oDat[oDat$species == "Primula_scandinavica",], add=T, cex = 0.2)
-```
-
-<img src="man/figures/README-unnamed-chunk-58-1.png" width="100%" /> The realised nishe is considerably smaller then the desirable or fundamental nishe.
-
-``` r
-Carex_simpliciuscula_ens <- raster::raster("models/predictions/Carex_simpliciuscula_ens.grd")
-raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability for Carex simpliciuscula")
-raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
-```
-
-<img src="man/figures/README-unnamed-chunk-59-1.png" width="100%" /> There are some white spots on the maps, the same areas for both. I need to figure out why....
-
-For most people I think presence-absence is more understandable than probability of occurence. Let's use mean threshold value for defining p-a and plot a discrete map instead.
-
-### Presence-absence map
-
-``` r
-for(i in 1:length(mySpecies3)){
-  s <- as.name(paste0(unique(oDat$species)[i], "_m"))
-  ev <- paste0(unique(oDat$species)[i], "_ev")
-  assign(ev, sdm::getEvaluation(eval(s), 
-                   stat = c('AUC', 'threshold'))
-  )
-}
-```
-
-``` r
-for(i in 1:length(mySpecies3)){
-  ens    <- get(paste0(unique(oDat$species)[i], "_ens"))
-  ev     <- get(paste0(unique(oDat$species)[i], "_ev"))
-  s      <- paste0(unique(oDat$species)[i], "_pa")
-  
-  
-  ens[]   <- ifelse(ens[] >= mean(ev$threshold), 1, 0)
-  assign(s, ens)
-}
-```
-
-``` r
-Primula_scandinavica_pa2 <- raster::ratify(Primula_scandinavica_pa)
-lev <- raster::levels(Primula_scandinavica_pa2)[[1]] 
-lev$pa <- c("Absent", "Present")
-levels(Primula_scandinavica_pa2) <- lev
-source("R/norway.R")
-nor <- norway(lonlat = FALSE)
-library(latticeExtra)
-#> Loading required package: lattice
-rasterVis::levelplot(Primula_scandinavica_pa2, 
-                   margin=F,
-                   main="Primula scandinavica",
-                   scales=list(draw=F),
-                   col.regions= c("grey", "blue"))+
-  layer(sp::sp.polygons(nor),col=grey(0.5))
-```
-
-<img src="man/figures/README-unnamed-chunk-62-1.png" width="100%" /> There are areas in white which there is no class and I'm not sure why...
-
-``` r
-Carex_simpliciuscula_pa2 <- raster::ratify(Carex_simpliciuscula_pa)
-lev <- raster::levels(Carex_simpliciuscula_pa2)[[1]] 
-lev$pa <- c("Absent", "Present")
-levels(Carex_simpliciuscula_pa2) <- lev
-
-rasterVis::levelplot(Carex_simpliciuscula_pa2, 
-                   margin=F,
-                   main="Carex simpliciuscula",
-                   scales=list(draw=F),
-                   col.regions= c("grey", "blue"))+
-  layer(sp::sp.polygons(nor),col=grey(0.5))
-```
-
-<img src="man/figures/README-unnamed-chunk-63-1.png" width="100%" /> They are the same areas for the Carex species. They are not NA cells, just absent cells.
-
-``` r
-Carex_simpliciuscula_pa2
-#> class      : RasterLayer 
-#> dimensions : 1628, 1115, 1815220  (nrow, ncol, ncell)
-#> resolution : 1000, 1000  (x, y)
-#> extent     : 229758.4, 1344758, 6397776, 8025776  (xmin, xmax, ymin, ymax)
-#> crs        : +proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
-#> source     : memory
-#> names      : layer 
-#> values     : 0, 1  (min, max)
-#> attributes :
-#>  ID      pa
-#>   0  Absent
-#>   1 Present
-```
-
-I can use one of the original models to make a prediction and see if the problem precists.
-
-``` r
-p <- raster::predict(model = Carex_simpliciuscula_m[[1]], 
-                     object = myIVs, filename =  'models/predictions/CsGLM1.img', overwrite=TRUE)
-raster::plot(p)
-```
-
-<img src="man/figures/README-unnamed-chunk-65-1.png" width="100%" /> It's still there, so it's not the ensemble step.
