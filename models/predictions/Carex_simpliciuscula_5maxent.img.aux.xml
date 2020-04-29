@@ -3,9 +3,9 @@
     <Description>Layer_1</Description>
     <Metadata>
       <MDI key="LAYER_TYPE">athematic</MDI>
-      <MDI key="STATISTICS_MAXIMUM">0.76873458623886</MDI>
+      <MDI key="STATISTICS_MAXIMUM">0.78723635673523</MDI>
       <MDI key="STATISTICS_MEAN">nan</MDI>
-      <MDI key="STATISTICS_MINIMUM">0.00058929625665769</MDI>
+      <MDI key="STATISTICS_MINIMUM">0.0028278025158215</MDI>
       <MDI key="STATISTICS_STDDEV">nan</MDI>
     </Metadata>
   </PAMRasterBand>

@@ -22,7 +22,7 @@
     -   [Occurence data](#occurence-data)
     -   [SDM](#sdm)
         -   [SDM-data](#sdm-data)
-        -   [5*3 models We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3*5 = 15 models per species. It takes about 1 min to run this.](#models-we-dont-have-any-independent-test-data-so-ill-use-bootstrapping-to-partition-test-data-and-ill-do-that-5-times.-i-shouldnt-do-much-less-because-there-are-very-few-data-points-for-some-of-the-species-like-p-scandinavica.-i-think-records-from-inside-the-same-1km-cells-will-be-counted-as-duplicates-and-removed.-i-will-use-3-methods-as-well-resulting-in-35-15-models-per-species.-it-takes-about-1-min-to-run-this.)
+        -   [5 x 3 models](#x-3-models)
             -   [Ensemble](#ensemble)
             -   [Presence-absence map](#presence-absence-map)
         -   [Best candidate model](#best-candidate-model)
@@ -40,7 +40,7 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-04-29 08:59:03 CEST"
+#> [1] "2020-04-29 14:50:14 CEST"
 ```
 
 This project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. The Shiny app will look something like this: ![The Shiny app will look something like this](figures/app.png)
@@ -133,7 +133,7 @@ Info
 
 ### Worldclim data and DTM
 
-Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively. First, let's delete the old bioclim variables, and also the cervid density data for all years exept the one we're going to use, which is 1999 (closest to the mean data of the species occurence records).
+Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
 
 ``` r
 # first tile
@@ -394,7 +394,7 @@ ratlc
 #> 9 99   3237                      NA
 ```
 
-Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also Built-up I think (red-liste plants are not found on parking lots that often.) his should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
+Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also 'Built-up' I think (red-liste plants are not found on parking lots that often). This should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
 
 ``` r
 myIVs$Land_Cover[myIVs$Land_Cover == 10 |
@@ -504,7 +504,7 @@ To test the functions I will use a shorter list of 10 species.
 mySpecies2 <- mySpecies[1:10]
 ```
 
-Lets do a test loop without downloading anything, just seeing how many records there are.
+Let's do a test loop without downloading anything, just seeing how many records there are.
 
 ``` r
 nOccurences_df <- data.frame(species = mySpecies2, 
@@ -531,9 +531,9 @@ nOccurences_df
 #> 10       Sorbus lancifolia         101
 ```
 
-This shows some of the bas in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321.
+This shows some of the bias in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321. However, I'm pretty sure occurences within the same 1x1 km cell will only count as one (duplicates removed by the sdm function.)
 
-For the next part I will use two species with a quite low number of records to reduce processing time.
+For the next part I will use two species with a quite low number of records to reduce processing time and test potentias problems due to low sample sizes.
 
 ``` r
 mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
@@ -665,7 +665,7 @@ mapview::mapview(Primula_scandinavica,
                  col.regions = "blue")
 ```
 
-<img src="man/figures/README-unnamed-chunk-40-1.png" width="100%" /> First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway.
+<img src="man/figures/README-unnamed-chunk-40-1.png" width="100%" /> First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the points that fall on Norway. First we need something to clip against, so we'll get an outline of Norway.
 
 ``` r
 # outline <- norway()
@@ -750,7 +750,7 @@ raster::plot(oDat,add=T)
 SDM
 ---
 
-Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll dropp bio15 as it was so unimportant. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify multiple species.
+Now we have all we need to make a model. I will save all model objects and use them for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll drop bio15 as it was so unimportant. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify multiple species.
 
 ``` r
 library(sdm)
@@ -788,7 +788,9 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-### 5*3 models We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3*5 = 15 models per species. It takes about 1 min to run this.
+### 5 x 3 models
+
+We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3 x 5 = 15 models per species. It takes about 1 min to run this.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -809,7 +811,7 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-Warning 1: *prediction from a rank-deficient fit may be misleading* Warning 2: *The response has five or fewer unique values. Are you sure you want to do regression?*
+Depending on methods, these are some common warning: Warning 1: *prediction from a rank-deficient fit may be misleading* Warning 2: *The response has five or fewer unique values. Are you sure you want to do regression?* I think this was mainly due to random forest method on small sample sizes.
 
 *Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
 
@@ -1000,11 +1002,11 @@ boxplot(threshold~species, data = df)
 boxplot(AUC~species, data = df)
 ```
 
-<img src="man/figures/README-unnamed-chunk-58-1.png" width="100%" /> I would not make a presense absense map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUC is more stable, some some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
+<img src="man/figures/README-unnamed-chunk-58-1.png" width="100%" /> I would not make a presence absence map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUCs is more stable, but some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
 
 #### Ensemble
 
-Lets put the 5\*3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
+Lets put the 5 x 3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -1048,7 +1050,7 @@ for(i in 1:length(mySpecies3)){
   s <- as.name(paste0(unique(oDat$species)[i], "_m"))
   ev <- paste0(unique(oDat$species)[i], "_ev")
   assign(ev, sdm::getEvaluation(eval(s), 
-                   stat = c('AUC', 'threshold'))
+                   stat = c('AUC', 'threshold', 'TSS'), opt = 2)
   )
 }
 ```
@@ -1104,26 +1106,26 @@ layer(sp::sp.points(oDat[oDat$species == "Carex_simpliciuscula",], pch = 1, cex 
 
 ### Best candidate model
 
-To make predictions from the 5-3 models we need to run the ensamble function again, this time with altered IVs in the newdata argument. The function is probably too slow to run on the fly. We could choose one method, eg maxent, and just use that for all species, and with only one replication. The we could use the predict function in raster which will be quicker. Or we can look at these 15 models we have generated and choose the best one from there. That would be a bit safer.
+To make predictions from the 5 x 3 models we need to run the ensamble function again, this time with altered IVs in the newdata argument. The function is probably too slow to run on the fly. This I need to test on the io server later. We could choose one method, eg maxent, and just use that for all species, and with only one replication. Then we could use the predict function in raster which will be quicker. Or we can look at these 15 models we have generated and choose the best one from there. That would be a bit safer.
 
 ``` r
 Primula_scandinavica_ev
-#>    modelID   AUC  threshold
-#> 1        1 0.791 0.17428732
-#> 2        2 0.756 0.08328167
-#> 3        3 0.714 0.14566953
-#> 4        4 0.761 0.24131305
-#> 5        5 0.804 0.09338707
-#> 6        6 0.889 0.34990089
-#> 7        7 0.907 0.01904153
-#> 8        8 0.920 0.02030771
-#> 9        9 0.865 0.03371827
-#> 10      10 0.768 0.23451925
-#> 11      11 0.899 0.19887266
-#> 12      12 0.863 0.50493407
-#> 13      13 0.858 0.36808664
-#> 14      14 0.836 0.25700560
-#> 15      15 0.904 0.66059893
+#>    modelID   AUC  threshold   TSS
+#> 1        1 0.791 0.17428732 0.509
+#> 2        2 0.756 0.08328167 0.485
+#> 3        3 0.714 0.14566953 0.408
+#> 4        4 0.761 0.24131305 0.482
+#> 5        5 0.804 0.09338707 0.584
+#> 6        6 0.889 0.34990089 0.627
+#> 7        7 0.907 0.01904153 0.663
+#> 8        8 0.920 0.02030771 0.708
+#> 9        9 0.865 0.03371827 0.686
+#> 10      10 0.768 0.23451925 0.604
+#> 11      11 0.899 0.19887266 0.662
+#> 12      12 0.863 0.50493407 0.657
+#> 13      13 0.858 0.36808664 0.623
+#> 14      14 0.836 0.25700560 0.521
+#> 15      15 0.904 0.66059893 0.727
 ```
 
 Based on AUC, model nr ...
@@ -1137,22 +1139,22 @@ is the best for the Primula. But the threshold is super low.
 
 ``` r
 Carex_simpliciuscula_ev
-#>    modelID   AUC threshold
-#> 1        1 0.732 0.4640570
-#> 2        2 0.777 0.5327341
-#> 3        3 0.744 0.5760212
-#> 4        4 0.747 0.5755588
-#> 5        5 0.739 0.5536726
-#> 6        6 0.861 0.5699635
-#> 7        7 0.882 0.6817512
-#> 8        8 0.899 0.7605437
-#> 9        9 0.873 0.6225270
-#> 10      10 0.900 0.6673734
-#> 11      11 0.880 0.5872504
-#> 12      12 0.893 0.5812584
-#> 13      13 0.921 0.6306559
-#> 14      14 0.897 0.5963424
-#> 15      15 0.898 0.5239558
+#>    modelID   AUC threshold   TSS
+#> 1        1 0.732 0.4640570 0.519
+#> 2        2 0.777 0.5327341 0.551
+#> 3        3 0.744 0.5760212 0.485
+#> 4        4 0.747 0.5755588 0.537
+#> 5        5 0.739 0.5536726 0.509
+#> 6        6 0.861 0.5699635 0.615
+#> 7        7 0.882 0.6817512 0.670
+#> 8        8 0.899 0.7605437 0.710
+#> 9        9 0.873 0.6225270 0.630
+#> 10      10 0.900 0.6673734 0.699
+#> 11      11 0.880 0.5872504 0.658
+#> 12      12 0.893 0.5812584 0.696
+#> 13      13 0.921 0.6306559 0.754
+#> 14      14 0.897 0.5963424 0.672
+#> 15      15 0.898 0.5239558 0.681
 ```
 
 Based on AUC, model nr ...
@@ -1161,7 +1163,7 @@ Based on AUC, model nr ...
 
 is the best for the Carex.
 
-Let's compare the ensemble with the best single model.
+Let's compare the ensemble with the best candidate model.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -1194,7 +1196,17 @@ raster::plot(Carex_simpliciuscula_best, main = "Best candidate model\nfor Carex"
 raster::plot(Carex_simpliciuscula_ens, main = "Ensemble model\nfor Carex")
 ```
 
-<img src="man/figures/README-unnamed-chunk-71-1.png" width="100%" /> They're quite different.
+<img src="man/figures/README-unnamed-chunk-71-1.png" width="100%" /> The models change considerably between runs, sometimes ending up with incomplete coverage (white areas on the map). The strange thing is that when that happens, it's the same for both species.
+
+``` r
+tt  <- Carex_simpliciuscula_best > -Inf
+tt2 <- Primula_scandinavica_best > -Inf
+par(mfrow = c(1,2))
+raster::plot(tt, main = "Carex")
+raster::plot(tt2, main = "Primula")
+```
+
+<img src="man/figures/README-unnamed-chunk-72-1.png" width="100%" />
 
 The following script makes these comparisons with presence absence map, but thats not so important.
 
@@ -1252,7 +1264,7 @@ dev.off()
 
 ### Replicated single method
 
-This approach chooses one method, maxent, and does five replicated partitionings, and thn the raster::predict function to make maps. I'll keep these models to to a speed test later in the actuall Shiny app on the io server.
+This approach chooses one method, maxent, and does five replicated partitionings, and then the raster::predict function to make maps. I'll keep these models to to a speed test later in the actuall Shiny app on the io server.
 
 ``` r
 for(i in 1:length(mySpecies3)){
@@ -1289,20 +1301,29 @@ for(i in 1:length(mySpecies3)){
 #> Loading required package: parallel
 ```
 
+Check coverage. Some runs gives white spots on this map.
+
 ``` r
-raster::plot(Primula_scandinavica_5maxent)
+tt <- Primula_scandinavica_5maxent > -Inf
+raster::plot(tt)
 ```
 
-<img src="man/figures/README-unnamed-chunk-74-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-75-1.png" width="100%" />
+
+``` r
+raster::plot(Primula_scandinavica_5maxent, main = "Habitat suitability\nPrimula, 5x maxent")
+```
+
+<img src="man/figures/README-unnamed-chunk-76-1.png" width="100%" />
 
 ``` r
 getEvaluation(Primula_scandinavica_ms)
 #>   modelID   AUC   COR  Deviance   TSS
-#> 1       1 0.813 0.468 0.5899888 0.613
-#> 2       2 0.880 0.491 0.8187185 0.663
-#> 3       3 0.903 0.502 0.5409577 0.747
-#> 4       4 0.827 0.347 1.0693747 0.590
-#> 5       5 0.865 0.395 0.9102192 0.593
+#> 1       1 0.973 0.560 0.6288563 0.885
+#> 2       2 0.889 0.513 0.5720289 0.729
+#> 3       3 0.908 0.464 0.7771705 0.717
+#> 4       4 0.938 0.509 0.6519923 0.773
+#> 5       5 0.923 0.489 0.5709049 0.707
 ```
 
 Compare 'best candidate' with 'five best maxent'
@@ -1312,7 +1333,7 @@ diffpa <- Primula_scandinavica_best - Primula_scandinavica_5maxent_pa
 raster::plot(diffpa)
 ```
 
-<img src="man/figures/README-unnamed-chunk-76-1.png" width="100%" /> Differences for sure. Close to max difference in Finnmark fo example.
+<img src="man/figures/README-unnamed-chunk-78-1.png" width="100%" /> Obs, plot changes between updates.
 
 ### Response curves
 
@@ -1415,7 +1436,7 @@ head(varimpmean)
 #> 6 Primula_scandinavica      temp    0.1030133 0.023270557
 ```
 
-Changing the variable nems for axis tick labels
+Changing the variable names for axis tick labels
 
 ``` r
 varimpmean$variables <- plyr::revalue(varimpmean$variables, c(

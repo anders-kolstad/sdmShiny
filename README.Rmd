@@ -106,7 +106,7 @@ Info
 
 ### Worldclim data and DTM
 Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
-First, let's delete the old bioclim variables, and also the cervid density data for all years exept the one we're going to use, which is 1999 (closest to the mean data of the species occurence records). 
+
 
 ```{r}
 # first tile
@@ -300,7 +300,7 @@ ratlc$Land_Cover <- c("Built-up",
                                     "NA")
 ratlc
 ```
-Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also Built-up I think (red-liste plants are not found on parking lots that often.) his should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
+Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also 'Built-up' I think (red-liste plants are not found on parking lots that often). This should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
 
 ```{r}
 myIVs$Land_Cover[myIVs$Land_Cover == 10 |
@@ -376,7 +376,7 @@ To test the functions I will use a shorter list of 10 species.
 ```{r}
 mySpecies2 <- mySpecies[1:10]
 ```
-Lets do a test loop without downloading anything, just seeing how many records there are.
+Let's do a test loop without downloading anything, just seeing how many records there are.
 ```{r}
 nOccurences_df <- data.frame(species = mySpecies2, 
                   nOccurences = as.numeric(NA))
@@ -389,9 +389,9 @@ for(i in 1:length(mySpecies2)){
 
 nOccurences_df
 ```
-This shows some of the bas in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321.
+This shows some of the bias in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321. However, I'm pretty sure occurences within the same 1x1 km cell will only count as one (duplicates removed by the sdm function.)
 
-For the next part I will use two species with a quite low number of records to reduce processing time.
+For the next part I will use two species with a quite low number of records to reduce processing time and test potentias problems due to low sample sizes.
 ```{r}
 mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
 # write.csv(mySpecies3, 'data/species_list.csv')
@@ -512,7 +512,7 @@ mapview::mapview(Primula_scandinavica,
                  alpha.regions = 0.5,
                  col.regions = "blue")
 ```
-First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the point that fall on Norway. First we need something to clip against, so we'll get an outline of Norway. 
+First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the points that fall on Norway. First we need something to clip against, so we'll get an outline of Norway. 
 ```{r}
 # outline <- norway()
 #saveRDS(outline, "data/large/outline_Norway.RData") # 1.8MB
@@ -587,7 +587,7 @@ raster::plot(oDat,add=T)
 
 
 ##SDM
-Now we have all we need to make a model. We can then save the model object and use it for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll dropp bio15 as it was so unimportant. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify multiple species.
+Now we have all we need to make a model. I will save all model objects and use them for making predictions live in the application. The two test species are alpine red listed plants, so I'll use the IV from the alpine paper. Actually, I'll drop bio15 as it was so unimportant. I'll create 1000 random pseudo absences across the goegraphical area (Norway I suppose). To avoid struggling too much with subsetting these strange sdm objects, I will run one set of models for each species, although I know that in sdm::sdm you can specify multiple species.
 ```{r}
 library(sdm)
 ```
@@ -621,8 +621,8 @@ for(i in 1:length(mySpecies3)){
 ```
 
 
-### 5*3 models
-We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3*5 = 15 models per species. It takes about 1 min to run this.
+### 5 x 3 models
+We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species, like P scandinavica. I think records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3 x 5 = 15 models per species. It takes about 1 min to run this.
 
 ```{r, eval=FALSE}
 for(i in 1:length(mySpecies3)){
@@ -643,8 +643,9 @@ for(i in 1:length(mySpecies3)){
 }
 
 ```
+Depending on methods, these are some common warning:
 Warning 1: *prediction from a rank-deficient fit may be misleading*
-Warning 2: *The response has five or fewer unique values.  Are you sure you want to do regression?*
+Warning 2: *The response has five or fewer unique values.  Are you sure you want to do regression?* I think this was mainly due to random forest method on small sample sizes.
 
 *Technical note: I seems to not be possible to print characters inside the sdm function formula, and therefore we neede seperate sdmData files for each species. I.e. the following fails.*
 ```{r, eval=FALSE}
@@ -701,12 +702,12 @@ boxplot(threshold~species, data = df)
 boxplot(AUC~species, data = df)
 
 ```
-I would not make a presense absense map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUC is more stable, some some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
+I would not make a presence absence map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUCs is more stable, but some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
 
 
 
 #### Ensemble
-Lets put the 5*3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
+Lets put the 5 x 3 models together and make a map of the current habitat suitability, using ensamble. Runtime approx. 1 min.
 ```{r, eval=FALSE}
 for(i in 1:length(mySpecies3)){
   s <- unique(oDat$species)[i]
@@ -745,7 +746,7 @@ for(i in 1:length(mySpecies3)){
   s <- as.name(paste0(unique(oDat$species)[i], "_m"))
   ev <- paste0(unique(oDat$species)[i], "_ev")
   assign(ev, sdm::getEvaluation(eval(s), 
-                   stat = c('AUC', 'threshold'))
+                   stat = c('AUC', 'threshold', 'TSS'), opt = 2)
   )
 }
 ```
@@ -800,7 +801,7 @@ Nice map. Easy to read and understand to laymen I think.
 
 ### Best candidate model
 
-To make predictions from the 5-3 models we need to run the ensamble function again, this time with altered IVs in the newdata argument. The function is probably too slow to run on the fly. We could choose one method, eg maxent, and just use that for all species, and with only one replication. The we could use the predict function in raster which will be quicker. Or we can look at these 15 models we have generated and choose the best one from there. That would be a bit safer.
+To make predictions from the 5 x 3 models we need to run the ensamble function again, this time with altered IVs in the newdata argument. The function is probably too slow to run on the fly. This I need to test on the io server later. We could choose one method, eg maxent, and just use that for all species, and with only one replication. Then we could use the predict function in raster which will be quicker. Or we can look at these 15 models we have generated and choose the best one from there. That would be a bit safer.
 
 ```{r}
 Primula_scandinavica_ev
@@ -822,7 +823,7 @@ which.max(Carex_simpliciuscula_ev$AUC)
 is the best for the Carex.
 
 
-Let's compare the ensemble with the best single model.
+Let's compare the ensemble with the best candidate model.
 
 
 ```{r}
@@ -856,7 +857,15 @@ raster::plot(Primula_scandinavica_ens, main = "Ensemble model\nfor Primula")
 raster::plot(Carex_simpliciuscula_best, main = "Best candidate model\nfor Carex")   
 raster::plot(Carex_simpliciuscula_ens, main = "Ensemble model\nfor Carex")
 ```
-They're quite different. 
+The models change considerably between runs, sometimes ending up with incomplete coverage (white areas on the map). The strange thing is that when that happens, it's the same for both species.
+```{r}
+tt  <- Carex_simpliciuscula_best > -Inf
+tt2 <- Primula_scandinavica_best > -Inf
+par(mfrow = c(1,2))
+raster::plot(tt, main = "Carex")
+raster::plot(tt2, main = "Primula")
+```
+
 
 The following script makes these comparisons with presence absence map, but thats not so important.
 ```{r, eval=FALSE}
@@ -913,7 +922,7 @@ dev.off()
 In conclusion I think we ideally should to replicate the partitioning because of the low sample sizes, but if that takes too long to process it not impossible to do the 'single best' approach, ie to find the best out of 15 candidate models and use that. This is better than choosing on method, ie maxent, and one of a few replicates, because our test showed that on some runs actually the GAMs were better. Then should use the probabilities and not the presence-absence maps, because of the large variation in the threshold value between model runs. If the 'single best models differs from the ensemble that may not be a problem as the change in predictions when altering the IVs (the input values) should be qualitatively similar, which is good enough for our purpose. Also, the ensemble prediction includes a lot of crap models so it's not neccessarily better.
 
 ### Replicated single method
-This approach chooses one method, maxent, and does five replicated partitionings, and thn the raster::predict function to make maps. I'll keep these models to to a speed test later in the actuall Shiny app on the io server.
+This approach chooses one method, maxent, and does five replicated partitionings, and then the raster::predict function to make maps. I'll keep these models to to a speed test later in the actuall Shiny app on the io server.
 ```{r}
 for(i in 1:length(mySpecies3)){
   
@@ -948,9 +957,15 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
+Check coverage. Some runs gives white spots on this map.
 ```{r}
-raster::plot(Primula_scandinavica_5maxent)
+tt <- Primula_scandinavica_5maxent > -Inf
+raster::plot(tt)
 ```
+```{r}
+raster::plot(Primula_scandinavica_5maxent, main = "Habitat suitability\nPrimula, 5x maxent")
+```
+
 ```{r}
 getEvaluation(Primula_scandinavica_ms)
 ```
@@ -961,7 +976,7 @@ Compare 'best candidate' with 'five best maxent'
 diffpa <- Primula_scandinavica_best - Primula_scandinavica_5maxent_pa
 raster::plot(diffpa)
 ```
-Differences for sure. Close to max difference in Finnmark fo example. 
+Obs, plot changes between updates. 
 
 
 
@@ -1041,7 +1056,7 @@ varimpmean <- do.call(data.frame, varimpmean)
 head(varimpmean)
 ```
 
-Changing the variable nems for axis tick labels
+Changing the variable names for axis tick labels
 ```{r}
 varimpmean$variables <- plyr::revalue(varimpmean$variables, c(
               prec         = "Årlig nedbørsmengde\n

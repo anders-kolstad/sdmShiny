@@ -14,13 +14,18 @@ shinyUI(fluidPage(
                   choices = c("Primula scandinavica","Carex simpliciuscula"),
                   selected = "Primula scandinavica"),
       
+      selectInput("modelling approach", 
+                  label = "Choose modelling approach",
+                  choices = c("Ensemble","Replicated maxent (n=5)", "Best candidate model"),
+                  selected = "Ensemble"),
+      
       sliderInput("temperature", 
                   label = "Change in summer temperature degC:",
                   min = -5, max = 5, value = c(0)),
       
       sliderInput("herbivory", 
                   label = "Change in sheep and reindeer density %:",
-                  min = -50, max = 50, value = c(0))
+                  min = -50, max = 50, value = c(0)),
       
       sliderInput("precipitation", 
                   label = "Change in annual precipitation mm/year:",
