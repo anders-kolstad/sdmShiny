@@ -1,0 +1,9 @@
+name: "sdmShiny"
+output_dir: "docs"
+navbar:
+  title: "sdmShiny"
+  left:
+  - text: "Home"
+   href: index.html
+output:
+  html_document:
