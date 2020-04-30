@@ -25,7 +25,7 @@ library(rasterVis)
 
 # import species list
 s <- read.csv('data/species_list.csv')
-s <- as.vector(s$x)
+s <- as.vector(s$x)   # ADB names
 
 # Bring all models into the environment
 files <- list.files("models/sdmModels/", pattern = ".sdm")
@@ -58,7 +58,7 @@ shinyServer(
         m <- get(paste0(ss2, "_m.sdm"))
         current <- sdm::ensemble(m, newdata = IV, 
                                  filename = paste0("models/predictions/app/", s, "_ens.img"), 
-                                 overwrite=TRUE,   
+                                 overwrite=TRUE,      # Error
                                  setting = list(method='weighted', stat = 'AUC'))
         pred    <- sdm::ensemble(m, newdata = IV2, 
                                  filename = paste0("models/predictions/app/", s, "_ens2.img"), 
@@ -73,7 +73,7 @@ shinyServer(
       pred     <-  predict(m, IV2)
       }
       
-      predp<-rasterViz::levelplot(raster::stack(p1,p2),
+      predp<-rasterViz::levelplot(raster::stack(current,pred),
                                   margin=F,
                                   main="Habitat suitability \n Primula scandinavica",
                                   names.attr=c("Current","Changed"))
