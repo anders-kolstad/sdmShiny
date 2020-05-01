@@ -23,3 +23,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This section documents the work that ended up the the shiny app. *link coming*
 
+### Introduction
+The sdmShiny project is for disseminating the species distribution modeling work done in James Speed's group at the NTNU University Museum. We will use web-based Shiny apps to present distribution maps of several species and allow these to change with the predictions of the SDM as the user tweaks the parameters for climate and herbivory. 
+
+### Publications
+[![Alt Text](figures/SpeedAustrheim2017.png)](https://www.sciencedirect.com/science/article/abs/pii/S0006320716309168)
