@@ -21,4 +21,5 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Home
 
-The website documents the work ....
+This section documents the work that ended up the the shiny app. *link coming*
+

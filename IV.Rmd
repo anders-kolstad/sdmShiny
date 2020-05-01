@@ -1,10 +1,19 @@
 ---
 title: "sdmShiny Project"
+
+output:
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+    
+    
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
  encoding=encoding,
  output_file=file.path(dirname(input_file), out_dir, 'IV.html'))})
+ 
 ---
 
 ```{r setup, include=FALSE}
@@ -19,6 +28,313 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Documentation: Setting up the IVs
 
+### Overview
+The alpine red-listed species paper used the following IVs, in the approximate order of importance:
+
+
+* bio10 (temperature)
+* bio12 (precipitation)
+* soil ph
+* Tundraherbivores - the combined metabolic biomass of sheep aand reindeer tundraherbivores
+* bio15 (precipitation seasonality)
+* AR50 categorical land-use classes (how many levels I don't know)
+
+
+The 'forest paper' used these:
+
+* bio10
+* bio12
+* Forest type (three levels, from AR50)
+* soil pH
+* Cervid densities...
+
+### Existing raster stacks
+#### The 'alpine paper'
+
+From the alpine red-listed species paper, I got this sent over from James:
+```{r}
+IV <- raster::stack("data/large/selectvars.grd")
+names(IV)
+```
+The first layer is the combined metabolic biomas of reindeer (wild and semi-domesticated) and sheep from the year 1999. I will use this later, but not the worldclim variable (see below). The resolution is 10km, which is larger than for the following layers.
+ 
+```{r}
+#reindeerSheep <- IV[[1]]
+#writeRaster(reindeerSheep, 'data/large/reindeerSheep')
+reindeerSheep <- raster::stack('data/large/reindeerSheep.grd')
+rm(IV)
+raster::plot(reindeerSheep)
+```
+
+
+#### The 'forest' paper
+
+From another of James' projects there is a file already collated with environmental data. It was downloaded from NTNU box: https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/393633279036
+
+```{r}
+PredVars <- raster::stack("data/large/PredictorVariables.grd")
+names(PredVars)[20:25]<-c('Elevation','Land_Cover','Forest_Type','Forest_Productivity','Vegetation_Type','SoilpH')
+
+# geonode is soil pH (soilgrids.org). The units are ph * 10.
+PredVars$SoilpH <- PredVars$SoilpH/10
+
+# Subset and keep only the layers we'll need.
+PredVars <- PredVars[[c(21:23, 25, 31, 39, 47)]]
+names(PredVars)
+```
+Info
+
+* ar50 maps are land use classes, including forest productivity (skogbon) and dominating forest tree species (treslag)
+* bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publication (bio15 is used in the 'alpine paper'). I'm remaking these variables belowe. so don't need to keep these.
+* resolution is 1km
+
+### Worldclim data and DTM
+Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
+
+
+```{r}
+# first tile
+#Norbioclim<-getData('worldclim',var='bio',res=0.5,lon=5,lat=60) # approx 3 min
+#Norbioclim <- Norbioclim[[c(10,12)]]
+#writeRaster(Norbioclim,'data/large/Norbioclim')
+Norbioclim <- raster::stack("data/large/Norbioclim.grd")
+raster::plot(Norbioclim)
+```
+
+```{r}
+# second tile
+#Norbioclim1<-getData('worldclim',var='bio',res=0.5,lon=5,lat=70)
+#Norbioclim1 <- Norbioclim1[[c(10,12)]]
+#writeRaster(Norbioclim1,'data/large/Norbioclim1')
+Norbioclim1 <- raster::stack("data/large/Norbioclim1.grd")
+raster::plot(Norbioclim1)
+```
+
+```{r}
+#third tile
+#Norbioclim2<-getData('worldclim',var='bio',res=0.5,lon=40,lat=70)
+#Norbioclim2 <- Norbioclim2[[c(10,12)]]
+#writeRaster(Norbioclim2,'data/large/Norbioclim2')
+Norbioclim2 <- raster::stack("data/large/Norbioclim2.grd")
+raster::plot(Norbioclim2)
+```
+
+Then I merge these together.
+```{r}
+mergclim<-raster::merge(Norbioclim,Norbioclim1)
+mergclim1<-raster::merge(mergclim,Norbioclim2)
+raster::plot(mergclim1)
+```
+
+Now I get a DTM for Norway to be used as an IV, but also to crop the wordclim data.
+```{r}
+#Norelev<-getData('alt',country='NOR', res = 0.5) # 0.86 km2
+#names(Norelev) # "NOR_msk_alt"
+#writeRaster(Norelev, "data/large/Norelev") # 20mb
+Norelev <- raster::stack("data/large/Norelev.grd")
+raster::plot(Norelev)
+```
+
+Then I crop the worldclim data
+```{r}
+cropclim<-raster::crop(mergclim1,Norelev)
+raster::plot(cropclim)
+```
+
+That took care of the extent. Now I want to put all cells that are outside the DTM as NA also in the climate layers
+```{r}
+Norclimdat<-raster::mask(cropclim,Norelev)
+raster::plot(Norclimdat)
+```
+
+I can put these two together.
+```{r}
+# NorClimElev<-stack(Norclimdat,Norelev)
+# names(NorClimElev)<-c("temp", "prec", "elev")
+# writeRaster(NorClimElev,'data/NorClimElev') # only 60 mb so shold be able to go on GitHub
+NorClimElev <- raster::stack('data/NorClimElev.grd')
+NorClimElev
+
+```
+Temperature seems to be x10. However, the algebra stuff crashes in knitr for some reason
+```{r, eval=FALSE}
+#NorClimElev$temp <- NorClimElev$temp/10
+#plot(NorClimElev$temp)
+```
+
+
+## Change projection and stack
+
+I'm going to use UTM32 projection because the maps look better (more familiar) than with latlon. For the worldclim data and the reindeerSheep data there will also be a resampling. I'm also going to delete some layers I don't need and save it all as IV (overwriting previous name). 
+```{r}
+newproj <- "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+# I need to use nearest neighbour for the categorical layers.
+cats               <- raster::stack(PredVars$Land_Cover, PredVars$Forest_Type, PredVars$Forest_Productivity) 
+cats               <- raster::projectRaster(cats, crs = newproj, method='ngb')
+
+num                <- raster::stack(PredVars$SoilpH,
+                                    PredVars$moose1999,
+                                    PredVars$red_deer1999,
+                                    PredVars$roe_deer1999)
+num                <- raster::projectRaster(num, crs = newproj, method='bilinear')
+
+# use 'num' as template to ensure same extent when resampling
+reindeerSheep2     <- raster::projectRaster(reindeerSheep, num[[1]], method='bilinear')  
+NorClimElev2       <- raster::projectRaster(NorClimElev, num[[1]], method='bilinear')
+
+# Combine
+IV                 <- raster::stack(cats, num, reindeerSheep2, NorClimElev2)
+```
+
+### Modify IVs
+Let's first look at some of them.
+```{r}
+par(mfrow = c(2,2))
+raster::plot(IV$Land_Cover, main = "Land cover")
+raster::plot(IV$SoilpH, main = "Soil pH")
+raster::plot(IV$Forest_Type, main = "Forest type")
+raster::plot(IV$Forest_Productivity, main = "Forest productivity")
+```
+These all need trimming and all exept pH need to be ratified.
+```{r}
+par(mfrow = c(2,2))
+raster::plot(IV$moose1999, main = "Moose")
+raster::plot(IV$red_deer1999, main = "Red deer")
+raster::plot(IV$roe_deer1999, main = "Roe deer")
+```
+Cervid data seems fine.
+
+#### Clip
+We can use any of the cervid data to mask the other layers.
+```{r}
+IV$SoilpH               <- raster::mask(IV$SoilpH,              IV$roe_deer1999)
+IV$Land_Cover           <- raster::mask(IV$Land_Cover,          IV$roe_deer1999)
+IV$Forest_Type          <- raster::mask(IV$Forest_Type,         IV$roe_deer1999)
+IV$Forest_Productivity  <- raster::mask(IV$Forest_Productivity, IV$roe_deer1999)
+```
+
+These should now be trimmed to the outline of Norway.
+```{r}
+par(mfrow = c(2,2))
+raster::plot(IV$Land_Cover, main = "Land cover")
+raster::plot(IV$SoilpH, main = "Soil pH")
+raster::plot(IV$Forest_Type, main = "Forest type")
+raster::plot(IV$Forest_Productivity, main = "Forest productivity")
+```
+Reset par.
+```{r}
+par(mfrow = c(1,1))
+```
+
+
+
+#### Ratify categorical layers
+This should naturally happen at this stage, but the RAT, raster attributes table, doesn't carry with the writeRaster function, so I need to do it after reading the file from disc.
+
+
+## Write IV file
+```{r}
+# writeRaster(IV, 'data/IV', overwrite=TRUE) # 76 MB
+myIVs              <- raster:: stack('data/IV.grd')
+rm(cats, IV, NorClimElev, Norclimdat, Norbioclim2, Norbioclim, Norbioclim1, NorClimElev2, num, PredVars, reindeerSheep, reindeerSheep2)
+names(myIVs)
+```
+
+
+### Ratify v2
+So now I can ratify.
+
+#### Forest productivity
+```{r}
+raster::levels(raster::ratify(myIVs$Forest_Productivity))
+```
+We don't want levels 98 and 99. Class 99 = 'ikke registrert'. 
+```{r}
+myIVs$Forest_Productivity[myIVs$Forest_Productivity>18]<-NA
+myIVs$Forest_Productivity <-   raster::ratify(myIVs$Forest_Productivity)
+
+ratlcp <- raster::levels(myIVs$Forest_Productivity)[[1]]
+ratlcp[['Forest_Productivity']] <- 
+  c('Unproductive',
+    'Low',
+    'Medium',
+    'High')
+
+levels(myIVs$Forest_Productivity) <- ratlcp
+cols2 <- colorRampPalette(c("lightgreen", "darkgreen" ))(4)
+rasterVis::levelplot(myIVs$Forest_Productivity, main = "Forest productivity", col.regions = cols2)
+
+```
+Ares of NA where there's no forest.
+
+#### Land cover
+For this one, let's also look at some statistics
+```{r}
+Land_Cover_stats <- raster::ratify(myIVs$Land_Cover, count = T)
+ratlc               <- raster::levels(Land_Cover_stats)[[1]]
+ratlc$Land_Cover <- c("Built-up",
+                                    "Agricultural",
+                                    "Forest",
+                                    "Open-natural vegetation",
+                                    "Mires",
+                                    "Glaciers/Ice/Snow",
+                                    "Freshwater",
+                                    "Sea",
+                                    "NA")
+ratlc
+```
+Norway is mostly open natural vegetation and forest. There's very little buildt up areas and glaciers. For the sake of modeling plant distributions we can group all the obviously unsuitable areas like water, glaciers, and also 'Built-up' I think (red-liste plants are not found on parking lots that often). This should simplify the models considerably. I'll keep the NA as they are, but put the others in a clas == 98 wich I'll call 'other'.
+
+```{r}
+myIVs$Land_Cover[myIVs$Land_Cover == 10 |
+                   myIVs$Land_Cover == 70 |
+                   myIVs$Land_Cover == 81 |
+                   myIVs$Land_Cover == 82] <- 98
+myIVs$Land_Cover <- raster::ratify(myIVs$Land_Cover)
+ratlc               <- raster::levels(myIVs$Land_Cover)[[1]]
+ratlc$Land_Cover <- c(
+                                    "Agricultural",
+                                    "Forest",
+                                    "Open-natural vegetation",
+                                    "Mires",
+                                    
+                                    
+                                    "others",
+                                    "NA")
+ratlc
+```
+
+```{r}
+
+levels(myIVs$Land_Cover) <- ratlc
+cols <- colorRampPalette(c(
+                           "yellow", 
+                           "darkgreen",
+                           "tan",
+                           "lightblue",
+                           "black",
+                           "white"
+                           ))
+rasterVis::levelplot(myIVs$Land_Cover, main = "Land cover", col.regions = cols)
+```
+
+#### Forest type
+```{r}
+raster::levels(raster::ratify(myIVs$Forest_Type))
+```
+Deleting class 98 and 99 as above, but also 39 although I', not sure what that is...
+
+```{r}
+myIVs$Forest_Type[myIVs$Forest_Type>33]<-NA
+myIVs$Forest_Type<-raster::ratify(myIVs$Forest_Type)
+ratlct<-raster::levels(myIVs$Forest_Type)[[1]]
+ratlct[['ForestType']] <-
+  c('Coniferous','Deciduous','Mixed')
+levels(myIVs$Forest_Type) <- ratlct
+cols3 <- colorRampPalette(c("darkgreen", "orange", "blue" ))
+rasterVis::levelplot(myIVs$Forest_Type, main= "Forest type", col.regions = cols3)
+```
 
 
 Anders
