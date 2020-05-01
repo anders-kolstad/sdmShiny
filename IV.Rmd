@@ -28,6 +28,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Documentation: Setting up the IVs
 
+Last update:
+```{r}
+Sys.time()
+```
+
 ### Overview
 The alpine red-listed species paper used the following IVs, in the approximate order of importance:
 
@@ -48,8 +53,8 @@ The 'forest paper' used these:
 * soil pH
 * Cervid densities...
 
-### Existing raster stacks
-#### The 'alpine paper'
+## Existing raster stacks
+### The 'alpine paper'
 
 From the alpine red-listed species paper, I got this sent over from James:
 ```{r}
@@ -67,7 +72,7 @@ raster::plot(reindeerSheep)
 ```
 
 
-#### The 'forest' paper
+### The 'forest' paper
 
 From another of James' projects there is a file already collated with environmental data. It was downloaded from NTNU box: https://ntnu.app.box.com/s/wcmr0dgoyz2yu6ielw6er1pm7h0gaisa/file/393633279036
 
@@ -88,7 +93,7 @@ Info
 * bio1 to bio19 are worldclim variables. Only bio 10 and12 are used in the publication (bio15 is used in the 'alpine paper'). I'm remaking these variables belowe. so don't need to keep these.
 * resolution is 1km
 
-### Worldclim data and DTM
+## Worldclim data and DTM
 Worldclim was updated jan 2020, so I can get the bioclim variables again. This is a dataset of interpolated climate variables for the whole world at high resolution (0.5 arc minutes). It is build on data from 1970 onwards and so is not representing any one year. I need to download it as three tiles before merging these together. I will save each tile, but only the two variable bio10 and bio12, Mean Temperature of Warmest Quarter and Annual Precipitation, respectively.
 
 
@@ -187,7 +192,7 @@ NorClimElev2       <- raster::projectRaster(NorClimElev, num[[1]], method='bilin
 IV                 <- raster::stack(cats, num, reindeerSheep2, NorClimElev2)
 ```
 
-### Modify IVs
+## Modify IVs
 Let's first look at some of them.
 ```{r}
 par(mfrow = c(2,2))
@@ -205,7 +210,7 @@ raster::plot(IV$roe_deer1999, main = "Roe deer")
 ```
 Cervid data seems fine.
 
-#### Clip
+## Clip
 We can use any of the cervid data to mask the other layers.
 ```{r}
 IV$SoilpH               <- raster::mask(IV$SoilpH,              IV$roe_deer1999)
@@ -229,7 +234,7 @@ par(mfrow = c(1,1))
 
 
 
-#### Ratify categorical layers
+## Ratify categorical layers
 This should naturally happen at this stage, but the RAT, raster attributes table, doesn't carry with the writeRaster function, so I need to do it after reading the file from disc.
 
 
@@ -242,10 +247,10 @@ names(myIVs)
 ```
 
 
-### Ratify v2
+## Ratify
 So now I can ratify.
 
-#### Forest productivity
+### Forest productivity
 ```{r}
 raster::levels(raster::ratify(myIVs$Forest_Productivity))
 ```
@@ -268,7 +273,7 @@ rasterVis::levelplot(myIVs$Forest_Productivity, main = "Forest productivity", co
 ```
 Ares of NA where there's no forest.
 
-#### Land cover
+### Land cover
 For this one, let's also look at some statistics
 ```{r}
 Land_Cover_stats <- raster::ratify(myIVs$Land_Cover, count = T)
@@ -319,7 +324,7 @@ cols <- colorRampPalette(c(
 rasterVis::levelplot(myIVs$Land_Cover, main = "Land cover", col.regions = cols)
 ```
 
-#### Forest type
+### Forest type
 ```{r}
 raster::levels(raster::ratify(myIVs$Forest_Type))
 ```
@@ -335,6 +340,3 @@ levels(myIVs$Forest_Type) <- ratlct
 cols3 <- colorRampPalette(c("darkgreen", "orange", "blue" ))
 rasterVis::levelplot(myIVs$Forest_Type, main= "Forest type", col.regions = cols3)
 ```
-
-
-Anders

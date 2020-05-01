@@ -1,5 +1,13 @@
 ---
 title: "sdmShiny Project"
+
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    
+    
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
@@ -20,21 +28,255 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Documentation: Download occurence data from GBIF
 
-
-This is an R Markdown document.  Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+##  Get species list
+This function  produces a list of species that we will later use to harvest occurence data from gbif. More on this later.
+```{r, eval = T}
+source("./R/spList.R")
+mySpecies <- sl()
+head(mySpecies)
 ```
 
-## Including Plots
+## Occurence data
+To get occurence data I will use the gbif function in the dismo package. It can only handle one species at the time, so I will need to make a for-loop.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+head(mySpecies)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+This is my species list with correct spelling (direct from ADB).
+To test the functions I will use a shorter list of 10 species.
+
+```{r}
+mySpecies2 <- mySpecies[1:10]
+```
+
+### Test run 
+Let's do a test loop without downloading anything, just seeing how many records there are.
+```{r}
+nOccurences_df <- data.frame(species = mySpecies2, 
+                  nOccurences = as.numeric(NA))
+
+for(i in 1:length(mySpecies2)){
+  myName  <- mySpecies2[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F) 
+}
+
+nOccurences_df
+```
+This shows some of the bias in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321. However, I'm pretty sure occurences within the same 1x1 km cell will only count as one (duplicates removed by the sdm function.)
+
+For the next part I will use two species with a quite low number of records to reduce processing time and test potentias problems due to low sample sizes.
+```{r}
+mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
+# write.csv(mySpecies3, 'data/species_list.csv')
+```
+
+For fun. lets see what these plants look like.
+```{r, eval = F}
+list.files("./figures/plants")
+```
+
+
+![Alt text](figures/plants/Kobresia_simpliciuscula_Andrey_Zharkikh_CCBY2.jpg)
+Picture: *Kobresia simpliciuscula* (Andrey Zharkikh CC-BY 2.0)
+
+![Alt text](figures/plants/Primula_scandinavica_Anders_Kolstad_CCBY4.JPG)
+Picture: *Primula scandinavica* (Anders Kolstad CC-BY 4.0)
+
+(Note: The picture sizes are 250p and 400p, respectively)
+
+## Download
+For real this time:
+
+```{r}
+for(i in 1:length(mySpecies3)){
+  myName  <- mySpecies3[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  
+  assign(
+    sub(' ', '_', mySpecies3[i]), 
+         dismo::gbif(myName2[1], myName2[2], 
+                                        download = T,
+                                        geo = T, 
+                                        sp = F) 
+  )
+}
+```
+
+Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later). 
+
+
+```{r}
+qc <- data.frame(Species = mySpecies3,
+                 lon_is_NA =                        as.numeric(NA),
+                 lat_NA_when_lon_not          =     as.numeric(NA),
+                 lon_is_zero =                      as.numeric(NA),
+                 lat_zero_when_lon_not = as.numeric(NA))
+
+for(i in 1:length(mySpecies3)){
+  
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  d <- d[,c("species","lat","lon")]
+  
+  # remove spaces in names (it clogs up the sdm function)
+  d$species <- sub(' ', '_', d$species)
+  
+  # remove NA's
+  w1 <- which(is.na(d$lon))
+  if(length(w1) != 0) d <- d[-w1,]
+  w2 <- which(is.na(d$lat))
+  if(length(w2) != 0) d <- d[-w2,]
+  
+  # remove those with coordinates equal to zero
+  w3 <- which(d$lon == 0)
+  if(length(w3) != 0) d <- d[-w3,]
+  w4 <- which(d$lat == 0)
+  if(length(w4) != 0) d <- d[-w4,]
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+  
+  qc[i,2] <- length(w1)
+  qc[i,3] <- length(w2)
+  qc[i,4] <- length(w3)
+  qc[i,5] <- length(w4)
+  
+}
+```
+
+A dataframe called qc tells us what has happened.
+```{r}
+qc
+```
+We have cut 787 rows from the Kobresia and 172 from Primula, due to missing coordinates.
+
+Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
+```{r}
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  sp::coordinates(d) <- ~lon + lat
+  sp::proj4string(d) <- sp::proj4string(raster::raster())
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+
+```
+
+```{r}
+mapview::mapview(Kobresia_simpliciuscula, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+```{r}
+mapview::mapview(Primula_scandinavica, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the points that fall on Norway. First we need something to clip against, so we'll get an outline of Norway. 
+```{r}
+# outline <- norway()
+#saveRDS(outline, "data/large/outline_Norway.RData") # 1.8MB
+outline <- readRDS("data/large/outline_Norway.RData")
+raster::plot(outline)
+```
+
+Now to clip away occurences outside this polygon (can take a few minutes)
+```{r}
+
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  d <- raster::crop(d, outline)
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+
+```
+
+Let's see it it worked.
+
+```{r}
+mapview::mapview(Kobresia_simpliciuscula, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+
+```{r}
+mapview::mapview(Primula_scandinavica, 
+                 map.types = c("Esri.WorldShadedRelief",
+                               "Esri.WorldImagery"),
+                 cex = 5, lwd = 0,
+                 alpha.regions = 0.5,
+                 col.regions = "blue")
+```
+Looks like it. Now we just need to get this over to UTM32 to match the IV data, and save it on file.
+```{r, eval = FALSE}
+for(i in 1:length(mySpecies3)){
+  
+  d <- get(
+           sub(' ', '_', mySpecies3[i]))
+  
+  d <- sp::spTransform(d, myIVs[[1]]@crs)
+  
+  assign(
+      sub(' ', '_', mySpecies3[i]),  d)
+}
+
+oDat <- get(sub(' ', '_', mySpecies3[1]))
+for(i in 2:length(mySpecies3)){
+  oDat <- rbind(oDat, get(sub(' ', '_', mySpecies3[i])))
+  }
+saveRDS(oDat, 'data/large/oDat.RData')
+rm(oDat)
+```
+
+```{r}
+oDat <- readRDS('data/large/oDat.RData')
+```
+
+```{r}
+myIVs              <- raster:: stack('data/IV.grd')
+raster::plot(myIVs$Forest_Productivity)
+raster::plot(oDat,add=T)
+```
+
+
+## Check sample sizes
+Let's see how mny point there are for each species, and how many of these that fall on the same 1x1 km grid cells.
+```{r}
+t <- myIVs$elev
+df <- data.frame(species = NA,
+                points = as.numeric(NA),
+                unique = as.numeric(NA))
+for(i in 1:length(unique(oDat$species))){
+  s       <- unique(oDat$species)[i]
+  df[i,1] <- paste(s)
+  t1      <- oDat[oDat$species == s,]
+  df[i,2] <- length(t1)
+  u       <- raster::rasterize(t1, t, 1, fun = "count")
+  df[i,3] <- length(u[u>0])
+}
+df
+
+```
+Not very good for the Primula, and this species was also much harder to model.
