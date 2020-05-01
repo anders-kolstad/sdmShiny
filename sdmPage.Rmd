@@ -1,0 +1,23 @@
+---
+title: "sdmShiny Project"
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'sdm.html'))})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+[HOME](https://anders-kolstad.github.io/sdmShiny) | 
+[Setting up the IVs](https://anders-kolstad.github.io/sdmShiny/IV) |
+[Downloading occurence data](https://anders-kolstad.github.io/sdmShiny/occurences) |
+[Fitting SDMs](https://anders-kolstad.github.io/sdmShiny/sdm)
+
+## Documentation: Fitting SDM models
+
+comming...
