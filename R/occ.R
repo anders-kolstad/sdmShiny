@@ -1,81 +1,201 @@
-#' Get occurence data from gbif
-#' 
-#' Take a species list and harvest gbif data
-#' @examples
-#' \dontrun{
-#'        x <- y
-#'        # put example here
-#'     }
+#### TOP #####
 
-#' @import dismo
-#' @import sp
-#' @import mapview
+## Download occurence data from GBIF
 
+# This script is for downloading occurence data from GBIF for multiple species at ones. 
+# It is similar to the Rmd example that used only 2 species: https://anders-kolstad.github.io/sdmShiny/occurences
+# One should only need to run this script ones and it may take a while to run.
 
+# Anders L. Kolstad May 2020
+
+##  Get species list ####
+#This function  produces a list of species that we will later use to harvest occurence data from gbif. 
 
 
-# Forest plant occurences from GBIF
+source("./R/spList.R")
+mySpecies <- sl()
+mySpeciesdf <- sl(df = T)
 
-#file <- "/home/anders/Documents/R/Git projects/sdmShiny/raw data/0008843-181108115102211.zip"
-#out <- finch::dwca_read # ERROR finch wont download
-
-#keysL  <-sapply(as.character(herblichen$Vitenskapelig.navn),function(x) name_backbone(x,rank='species')$speciesKey)
-
-#paste(keysL, collapse = ',')#Copy and paste to below
-
-#odLichen <- occ_download('taxonKey = 2609133,2607387,3408876,2603661,2602561,2609349,3422592,3433876,2601243,2608140,5260765,7083298,2605872,7425899,5260770,9198278,5258394,8704544,3397573,3429282,3390552,2609409,2609180,5260761,2607725,8335421,5260565,2599762,3429909,3389602'
-#                        ,'country = NO','hasCoordinate = TRUE',
-#                      user='jamesspeed',pwd='*****',email='*****')
-#occ_download_meta(odLichen)
-#gbif_citation(occ_download_meta(odLichen))# GBIF Occurrence Download https://doi.org/10.15468/dl.pl144i Accessed from R via rgbif (https://github.com/ropensci/rgbif) on 2018-11-26"
+head(mySpecies)
+head(mySpeciesdf)
 
 
+## Occurence data
+#To get occurence data I will use the gbif function in the dismo package. 
+#It can only handle one species at the time, so I will need to make a for-loop.
+
+
+### Test run ####
+#Let's do a test loop without downloading anything, just seeing how many records there are.
+#This are all the records, not only from Norway.
+nOccurences_df <- data.frame(species = mySpecies, 
+                             nOccurences = as.numeric(NA))
+
+for(i in 1:length(mySpecies)){
+myName  <- mySpecies[i]
+myName2 <- stringr::str_split(myName, " ")[[1]]
+nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F) 
+}
+
+View(nOccurences_df)
+plot(nOccurences_df$nOccurences)
+summary(nOccurences_df$nOccurences)
+
+
+## Download  ####
+#For real this time:
+
+# BIG JOB ALERT # ///////////////////////////////////////////
+
+for(i in 1:length(mySpecies)){
+  myName  <- mySpecies[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  
+  assign(
+    sub(' ', '_', mySpecies[i]), 
+    dismo::gbif(myName2[1], myName2[2], 
+                download = T,
+                geo = T, 
+                sp = F) 
+  )
+}
+
+# BIG JOB FINISHED # ///////////////////////////////////////////
+
+#Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later). 
 
 
 
-# test download
-#dismo::gbif("Botrychium", "lanceolatum", download = F)
-#dismo::gbif("Primula", "scandinavica", download = F)
+qc <- data.frame(Species = mySpecies,
+                 lon_is_NA =                        as.numeric(NA),
+                 lat_NA_when_lon_not          =     as.numeric(NA),
+                 lon_is_zero =                      as.numeric(NA),
+                 lat_zero_when_lon_not = as.numeric(NA))
 
-#ps <- dismo::gbif("Primula", "scandinavica", download = T, geo = T, sp = F)
+for(i in 1:length(mySpecies)){
+  
+  
+  d <- get(
+    sub(' ', '_', mySpecies[i]))
+  d <- d[,c("species","lat","lon")]
+  
+  # remove spaces in names (it clogs up the sdm function)
+  d$species <- sub(' ', '_', d$species)
+  
+  # remove NA's
+  w1 <- which(is.na(d$lon))
+  if(length(w1) != 0) d <- d[-w1,]
+  w2 <- which(is.na(d$lat))
+  if(length(w2) != 0) d <- d[-w2,]
+  
+  # remove those with coordinates equal to zero
+  w3 <- which(d$lon == 0)
+  if(length(w3) != 0) d <- d[-w3,]
+  w4 <- which(d$lat == 0)
+  if(length(w4) != 0) d <- d[-w4,]
+  
+  assign(
+    sub(' ', '_', mySpecies[i]),  d)
+  
+  qc[i,2] <- length(w1)
+  qc[i,3] <- length(w2)
+  qc[i,4] <- length(w3)
+  qc[i,5] <- length(w4)
+  
+}
 
-# this will require a for loop
 
-#class(ps)
+#A dataframe called qc tells us what has happened.
+qc
 
-# backup
-#PS <- ps
+#Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
 
-# remove NA's
-#w <- which(is.na(ps$lon))
-#if(length(w) != 0) ps <- ps[-w,]
-#w <- which(is.na(ps$lat))
-#if(length(w) != 0) ps <- ps[-w,]
-#w <- which(ps$lon == 0)
-#if(length(w) != 0) ps <- ps[-w,]
-#w <- which(ps$lat == 0)
-#if(length(w) != 0) ps <- ps[-w,]
+for(i in 1:length(mySpecies)){
+  
+  d <- get(
+    sub(' ', '_', mySpecies[i]))
+  
+  sp::coordinates(d) <- ~lon + lat
+  sp::proj4string(d) <- sp::proj4string(raster::raster())
+  
+  assign(
+    sub(' ', '_', mySpecies[i]),  d)
+}
 
 
-#ps$species <- 'Primula scandinavica'
-#ps <- ps[,c("lon", "lat","species")]
-#head(ps)
-#sp::coordinates(ps) <- ~lon + lat
-#sp::proj4string(ps) <- sp::proj4string(raster::raster())
-##library(mapview)
-#mapview::mapview(ps, 
-#                 map.types = c("Esri.WorldShadedRelief",
-#                               "Esri.WorldImagery"),
-#                 cex = 5, lwd = 0,
-#                 alpha.regions = 0.5,
-#                 col.regions = "blue")#
+# CLIP
+# First we need something to clip against, so we'll get an outline of Norway. 
+outline <- readRDS("data/large/outline_Norway.RData")
+raster::plot(outline)
 
-#library(margrittr) # forward pipe
-#leaflet::leaflet(data = bl) %>% 
-#  addTiles(group = "OSM", 
-#  options = providerTileOptions(minZoom = 2, maxZoom = 100)) # %>% 
-#  addCircleMarkers(lat = ~lat, lng = ~lon,
-#                   color = "blue",
-#                   radius = 0.05)
+# Now to clip away occurences outside this polygon
 
+# BIG JOB ALERT # ///////////////////////////////////////////
+
+
+for(i in 1:length(mySpecies)){
+
+d <- get(
+sub(' ', '_', mySpecies[i]))
+
+d <- raster::crop(d, outline)
+
+assign(
+sub(' ', '_', mySpecies[i]),  d)
+}
+
+
+# Let's see it it worked.
+
+
+# Now we just need to get this over to UTM32 to match the IV data, and save it on file.
+myIVs      <- raster::stack('data/IV.grd')
+
+for(i in 1:length(mySpecies)){
+  
+  d <- get(
+    sub(' ', '_', mySpecies[i]))
+  
+  d <- sp::spTransform(d, myIVs[[1]]@crs)
+  
+  assign(
+    sub(' ', '_', mySpecies[i]),  d)
+}
+
+oDat <- get(sub(' ', '_', mySpecies[1]))
+for(i in 2:length(mySpecies)){
+  oDat <- rbind(oDat, get(sub(' ', '_', mySpecies[i])))
+}
+
+saveRDS(oDat, 'data/large/allOccurences.RData')
+
+
+
+
+oDat <- readRDS('data/large/oDat.RData')
+
+
+
+# Check that they are inside Norway
+raster::plot(myIVs$Forest_Productivity)
+raster::plot(oDat,add=T)
+
+
+
+## Check sample sizes
+#Let's see how mny point there are for each species, and how many of these that fall on the same 1x1 km grid cells.
+
+t <- myIVs$elev
+df <- data.frame(species = NA,
+                points = as.numeric(NA),
+                unique = as.numeric(NA))
+for(i in 1:length(unique(oDat$species))){
+  s       <- unique(oDat$species)[i]
+  df[i,1] <- paste(s)
+  t1      <- oDat[oDat$species == s,]
+  df[i,2] <- length(t1)
+  u       <- raster::rasterize(t1, t, 1, fun = "count")
+  df[i,3] <- length(u[u>0])
+}
+df
 
