@@ -243,6 +243,7 @@ library(sdm)
 ### SDM-data
 
 for(i in 1:length(mySpecies3)){
+  rm(s, s2, d, dat)
   s    <- unique(oDat$species)[i]
   s2   <- paste0(s, "_d")
   d    <- oDat[oDat$species == s,]
