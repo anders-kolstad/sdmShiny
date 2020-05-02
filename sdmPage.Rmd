@@ -39,11 +39,11 @@ Now we have all we need to make a model. I will save all model objects and use t
 This code chunk will get us up to speed.
 ```{r}
 library(sdm)
-myIVs              <- raster:: stack('data/IV.grd')
 source("./R/spList.R")
-mySpecies <- sl()
+myIVs      <- raster::stack('data/IV.grd')
+mySpecies  <- sl()
 mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
-oDat <- readRDS('data/large/oDat.RData')
+oDat       <- readRDS('data/large/oDat.RData')
 ```
 
 ## SDM-data object
@@ -57,19 +57,20 @@ for(i in 1:length(mySpecies3)){
                    predictors = myIVs,
                    bg = list(n=1000, method = "gRandom"))
   
-  # assign(s2, dat)
-  sdm::write.sdm(dat, paste0("models/sdmData/", s2), overwrite=TRUE)
+  assign(s2, dat)
+  sdm::write.sdm(dat, paste0("temp/models/sdmData/", s2), overwrite=TRUE)
+  rm(s, s2, d, dat)
 }
 
 ```
 This takes the names over to the gbif approved names (Kobresia to Carex). Perhaps it's for the best. (Hmm, no, that'll make it more difficult to find the model object in the folders when there are tens of models. )
 
-This code could bring the sdmData back in into the environment, but I don't need it now:
+This code could bring the sdmData back into the environment, but I don't need it now:
 ```{r, eval=FALSE}
 for(i in 1:length(mySpecies3)){
   s    <- unique(oDat$species)[i]
   s2   <- paste0(s, "_d")
-  s3   <- paste0("models/sdmData/", s, "_d.sdd")
+  s3   <- paste0("temp/models/sdmData/", s, "_d.sdd")
   assign(s2, sdm::read.sdm(s3))
 }
 ```
@@ -82,9 +83,9 @@ We don't have any independent test data so I'll use bootstrapping to partition t
 for(i in 1:length(mySpecies3)){
   
   s       <- unique(oDat$species)[i]
-  file1   <- paste0("models/sdmData/", s, "_d.sdd")
+  file1   <- paste0("temp/models/sdmData/", s, "_d.sdd")
   obj     <- paste0(s, "_m")
-  file2   <- paste0("models/sdmModels/", obj)
+  file2   <- paste0("temp/models/sdmModels/", obj)
   d      <- sdm::read.sdm(file1)
   
   mod <- sdm::sdm(.~.,
@@ -94,8 +95,8 @@ for(i in 1:length(mySpecies3)){
   
   sdm::write.sdm(mod, file2, overwrite=TRUE)
   
+  rm(s, file1, obj, file2, d, mod)
 }
-
 ```
 Depending on methods, these are some common warning:
 Warning 1: *prediction from a rank-deficient fit may be misleading*
@@ -121,7 +122,7 @@ Let's bring the models back in to the environment. They're 3-20 20 MB each on fi
 for(i in 1:length(mySpecies3)){
   s      <- unique(oDat$species)[i]
   s2     <- paste0(s, "_m")
-  file   <- paste0("models/sdmModels/", s2, ".sdm")
+  file   <- paste0("temp/models/sdmModels/", s2, ".sdm")
   
   assign(s2, sdm::read.sdm(file))
 }
@@ -156,7 +157,7 @@ boxplot(threshold~species, data = df)
 boxplot(AUC~species, data = df)
 
 ```
-I would not make a presence absence map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUCs is more stable, but some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
+The plots change between runs, but often the Primula has larger variation in threshold values, ie. a bigger box. I would not make a presence absence map for the Primula with threshold values being so fluctuating. Either I make probability maps for all, or I drop some species out. The AUCs is more stable, but some replicated partitioning seems warranted. The trade off here is with processing time for this thing to be able to run live predictions.
 
 
 
@@ -168,7 +169,7 @@ for(i in 1:length(mySpecies3)){
   d <- get(paste0(s, "_m"))
   
   # using this because overwrite=TRUE don't work
-  fn <- paste0("models/predictions/", s, "_ens.img")
+  fn <- paste0("temp/models/predictions/", s, "_ens.img")
   if(file.exists(fn)){file.remove(fn)}
   
   mod <- sdm::ensemble(d,
@@ -178,19 +179,23 @@ for(i in 1:length(mySpecies3)){
               )     
   assign(paste0(s, "_ens"), 
          mod)
+  
+  rm(s, d, fn, mod)
 }
 ```
 Lets plot them.
 ```{r}
-Primula_scandinavica_ens <- raster::raster("models/predictions/Primula_scandinavica_ens.img")
-raster::plot(Primula_scandinavica_ens, main = "Habitat suitability for Primula scandinavica")
+Primula_scandinavica_ens <- raster::raster("temp/models/predictions/Primula_scandinavica_ens.img")
+raster::plot(Primula_scandinavica_ens, 
+             main = expression(paste('Habitat suitability for ', italic('P. scandinavica'))))
 raster::plot(oDat[oDat$species == "Primula_scandinavica",], add=T, cex = 0.8, pch = 1)
 ```
 The realised nishe is considerably smaller then the desirable or fundamental nishe.
 
 ```{r}
-Carex_simpliciuscula_ens <- raster::raster("models/predictions/Carex_simpliciuscula_ens.img")
-raster::plot(Carex_simpliciuscula_ens, main = "Habitat suitability for Carex simpliciuscula")
+Carex_simpliciuscula_ens <- raster::raster("temp/models/predictions/Carex_simpliciuscula_ens.img")
+raster::plot(Carex_simpliciuscula_ens, 
+             main = expression(paste("Habitat suitability for ", italic("C. simpliciuscula"))))
 raster::plot(oDat[oDat$species == "Carex_simpliciuscula",], add=T, cex = 0.2)
 ```
 
@@ -232,7 +237,7 @@ nor <- norway(lonlat = FALSE)
 library(latticeExtra)
 rasterVis::levelplot(Primula_scandinavica_pa2, 
                    margin=F,
-                   main="Primula scandinavica",
+                   main=expression(italic("Primula scandinavica")),
                    scales=list(draw=F),
                    col.regions= c("grey", "blue"))+
   layer(sp::sp.polygons(nor),col=grey(0.5))+
@@ -248,7 +253,7 @@ levels(Carex_simpliciuscula_pa2) <- lev
 
 rasterVis::levelplot(Carex_simpliciuscula_pa2, 
                    margin=F,
-                   main="Carex simpliciuscula",
+                   main=expression(italic("Carex simpliciuscula")),
                    scales=list(draw=F),
                    col.regions= c("grey", "blue"))+
   layer(sp::sp.polygons(nor),col=grey(0.5))+
@@ -289,21 +294,25 @@ for(i in 1:length(mySpecies3)){
   s <- unique(oDat$species)[i]
   s2 <- paste0(s, "_m")
   s3 <- get(paste0(s, "_ev"))
-  file <- paste0("models/sdmModels/", s, "_bcm")
+  file <- paste0("temp/models/sdmModels/", s, "_bcm")
   best <- s3$modelID[s3$AUC == max(s3$AUC)]
   mod <- get(s2)
   mod2 <- mod[[best]]
+  
+  # save the model object for easy lading in the shiny app.
   sdm::write.sdm(mod2, file, overwrite=TRUE)
 
   
   
   mod3 <- raster::predict(mod2,
               object = myIVs, 
-              filename = paste0("models/predictions/", s, "_best.img"), 
+              filename = paste0("temp/models/predictions/", s, "_best.img"), 
               overwrite=TRUE)
                 
   assign(paste0(s, "_best"), 
          mod3)
+  
+  rm(s, s2, s3, file, best, mod, mod2, mod3)
 }
 ```
 
@@ -330,14 +339,16 @@ The following script makes these comparisons with presence absence map, but that
 for(i in 1:length(mySpecies3)){
   p    <- get(paste0(unique(oDat$species)[i], "_best"))
   ev     <- get(paste0(unique(oDat$species)[i], "_ev"))
-  th     <- ev$threshold[ev$AUC == max(s3$AUC)]
+  th     <- ev$threshold[ev$AUC == max(ev$AUC)]
   s      <- paste0(unique(oDat$species)[i], "_pab")
   
   
   p[]   <- ifelse(p[] >= mean(ev$threshold), 1, 0)
   assign(s, p)
+  
+  
 }
-
+rm(p, ev, th, s)
 
 # Find divergent areas for the Primula
 
@@ -385,11 +396,11 @@ This approach chooses one method, maxent, and does five replicated partitionings
 for(i in 1:length(mySpecies3)){
   
   s       <- unique(oDat$species)[i]
-  file1   <- paste0("models/sdmData/", s, "_d.sdd")
+  file1   <- paste0("temp/models/sdmData/", s, "_d.sdd")
   obj     <- paste0(s, "_ms")
-  obj2     <- paste0(s, "_5maxent")
-  file2   <- paste0("models/sdmModels/", obj)
-  d      <- sdm::read.sdm(file1)
+  obj2    <- paste0(s, "_5maxent")
+  file2   <- paste0("temp/models/sdmModels/", obj)
+  d       <- sdm::read.sdm(file1)
   
   mod <- sdm::sdm(.~.,
               data = d, 
@@ -402,7 +413,7 @@ for(i in 1:length(mySpecies3)){
   mod2 <- raster::predict(mod,
               object = myIVs,
               mean = T,
-              filename = paste0("models/predictions/", obj2, ".img"), 
+              filename = paste0("temp/models/predictions/", obj2, ".img"), 
               overwrite=TRUE)
   assign(obj2, mod2)
 
@@ -415,13 +426,15 @@ for(i in 1:length(mySpecies3)){
 }
 ```
 
-Check coverage. Some runs gives white spots on this map.
+Some runs gives white spots on this map. I think I have traced this problem to sdmData function - the 'number of records' ois not the sum of the pseudo-absences plus unique spatial points in the occurence data. Usually I get a fairly close number when I run the for-loop with an empty environment (eg 800-1060 records for Primula). But if I run it again straight after I get maybe around 200. It's easier to check the coverage when there is just one colour.
 ```{r}
 tt <- Primula_scandinavica_5maxent > -Inf
 raster::plot(tt)
 ```
+
 ```{r}
-raster::plot(Primula_scandinavica_5maxent, main = "Habitat suitability\nPrimula, 5x maxent")
+raster::plot(Primula_scandinavica_5maxent, 
+      main = expression(paste("Habitat suitability | ", italic("P. scandinavica"), " | 5x maxent")))
 ```
 
 ```{r}
@@ -442,11 +455,10 @@ Obs, plot changes between updates.
 Let make response curve plots for each species and save those as well. These are the mean responses for the 5 x 3 models.
 ```{r}
 
-
 for(i in 1:length(mySpecies3)){
   s      <- unique(oDat$species)[i]
   s2     <- paste0(s, "_m")
-  s3     <- paste0("models/rcurves/", s, "_rcurves.png")
+  s3     <- paste0("temp/models/rcurves/", s, "_rcurves.png")
   d      <- get(s2)
   d2     <- d
  
@@ -465,11 +477,11 @@ png(filename = s3,
 
 }
 ```
-![Alt text](models/rcurves/Primula_scandinavica_rcurves.png)
-![Alt text](models/rcurves/Carex_simpliciuscula_rcurves.png)
+![Alt text](temp/models/rcurves/Primula_scandinavica_rcurves.png)
+![Alt text](temp/models/rcurves/Carex_simpliciuscula_rcurves.png)
 
 ## Variable importance
-I would also like to get a plot of the variable importance. This script uses the combined/averaged impirtances from the 5*3 models.
+I would also like to get a plot of the variable importance. This script uses the combined/averaged impirtances from the 5 x 3 models.
 ```{r}
 # create empty list
 varimp <- list()
@@ -534,7 +546,7 @@ library(ggplot2)
 for(i in 1:length(unique(varimpmean$species))){
   
   d <- varimpmean[varimpmean$species==unique(varimpmean$species)[i],]
-  s <- paste0("./models/varimp/",
+  s <- paste0("temp/models/varimp/",
               unique(varimpmean$species)[i],
               ".png")
   
@@ -559,5 +571,5 @@ for(i in 1:length(unique(varimpmean$species))){
 }
 ```
 
-![Alt text](models/varimp/Primula_scandinavica.png)
-![Alt text](models/varimp/Carex_simpliciuscula.png)
+![Alt text](temp/models/varimp/Primula_scandinavica.png)
+![Alt text](temp/models/varimp/Carex_simpliciuscula.png)
