@@ -21,7 +21,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Home
 ```{r, echo=FALSE}
-knitr::include_app("https://anderskolstad.shinyapps.io/sdmShiny/")
+knitr::include_app("https://anderskolstad.shinyapps.io/sdmShiny/",
+                   height = "1000px")
 ```
 
 
