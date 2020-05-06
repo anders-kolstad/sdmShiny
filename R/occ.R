@@ -281,7 +281,7 @@ for(i in 2:80){
 #raster::plot(nor2)
 #raster::plot(oDat[oDat$species == "Ulmus_glabra",], add=T)
 
-saveRDS(oDat, 'data/large/allOccurences1-80.RData')
+saveRDS(oDat, 'data/allOccurences1-80.RData')
 
 #testImp <- readRDS('data/large/allOccurences1-80.RData')
 
