@@ -64,13 +64,13 @@ for(i in 1:length(mySpecies)){
 
 
 # Let's bring the models back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.
-for(i in 1:length(mySpecies)){
-  s      <- unique(oDat$species)[i]
-  s2     <- paste0(s, "_m")
-  file   <- paste0("models/sdmModels/", s2, ".sdm")
-  
-  assign(s2, sdm::read.sdm(file))
-}
+#for(i in 1:length(mySpecies)){
+#  s      <- unique(oDat$species)[i]
+#  s2     <- paste0(s, "_m")
+#  file   <- paste0("models/sdmModels/", s2, ".sdm")
+#  
+#  assign(s2, sdm::read.sdm(file))
+#}
 
 
 
@@ -80,7 +80,8 @@ for(i in 1:length(mySpecies)){
 
 for(i in 1:length(mySpecies)){
   s <- unique(oDat$species)[i]
-  d <- get(paste0(s, "_m"))
+  d <- sdm::read.sdm(paste0("models/sdmModels/", s, "_m.sdm"))
+  #
   
   # using this because overwrite=TRUE dont work
   fn <- paste0("models/predictions/", s, "_ens.img")
@@ -88,7 +89,8 @@ for(i in 1:length(mySpecies)){
   
   mod <- sdm::ensemble(d,
                        newdata = myIVs, 
-                       filename = fn, overwrite=TRUE,   
+                       filename = fn, 
+                       overwrite=TRUE,   
                        setting = list(method='weighted', stat = 'AUC')
   )     
   
@@ -100,8 +102,9 @@ for(i in 1:length(mySpecies)){
 
 
 # It a good idea to plot some  of them here.
-
-
+#p <- stack("models/predictions/Primula_scandinavica_ens.img")
+#plot(p)
+#rm(p)
 
 
 
@@ -114,7 +117,7 @@ for(i in 1:length(mySpecies)){
 for(i in 1:length(mySpecies)){
   s <- unique(oDat$species)[i]
   s2 <- paste0(s, "_m")
-  mod <- get(s2)
+  mod <- sdm::read.sdm(paste0("models/sdmModels/", s, "_m.sdm"))
   s3 <- getEvaluation(mod)
   file <- paste0("models/sdmModels/", s, "_bcm")
   best <- s3$modelID[which.max(s3$AUC)]
@@ -141,7 +144,7 @@ for(i in 1:length(mySpecies)){
 # Plotting - just change the ending of the file name and rerun line with a few different species
 #p <- stack("models/predictions/Primula_scandinavica_bcm.img")
 #plot(p)
-
+#rm(p)
 
 
 ## Replicated single method  ####
@@ -176,8 +179,8 @@ for(i in 1:length(mySpecies)){
  
 
 # Plotting - just change the ending of the file name and rerun line with a few different species
-p <- stack("models/predictions/Carex_simpliciuscula_5maxent.img")
-plot(p)
+#p <- stack("models/predictions/Carex_simpliciuscula_5maxent.img")
+#plot(p)
 
 
 # Option for presence-absence maps instead:

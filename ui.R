@@ -10,6 +10,8 @@ shinyUI(fluidPage(
     sidebarPanel(
       helpText("Explore effects of changing climate and herbivore densities on distribution of rare plant species."),
       
+      
+      # Possible improvement: https://shiny.rstudio.com/articles/selectize.html
       selectInput("species", 
                   label = "Choose a species to display",
                   choices = c("Primula scandinavica","Carex simpliciuscula"),
@@ -33,8 +35,11 @@ shinyUI(fluidPage(
                   min = -1000, max = 1000, value = c(0))
     ) ,
     
-    mainPanel(plotOutput("map")
-              #,imageOutput('image')
-    )
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Plots", textOutput("map")), 
+        tabPanel("Variable importance", imageOutput("varimp")), 
+        tabPanel("Response curves", imageOutput("rcurves"))
+      ))
     
   )))

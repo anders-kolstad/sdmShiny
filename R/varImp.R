@@ -1,5 +1,13 @@
 ## Variable importance
 #I would also like to get a plot of the variable importance. This script uses the combined/averaged impirtances from the 5 x 3 models.
+
+
+mySpecies  <- c("Primula scandinavica", "Kobresia simpliciuscula")
+#mySpecies  <- sl()
+oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
+# oDat2       <- readRDS('data/large/allOccurences.RData') # All species
+# oDat2 <- oDat
+
 # create empty list
 varimp <- list()
 
@@ -13,10 +21,13 @@ df1 <- data.frame(variables = IV,
                   corTest = as.numeric(NA),
                   AUCtest = as.numeric(NA))
 
-for(i in 1:length(mySpecies3)){
+
+
+
+for(i in 1:length(mySpecies)){
   s      <- unique(oDat$species)[i]
   s2     <- paste0(s, "_m")
-  d      <- get(s2)
+  d      <- read.sdm(paste0("models/sdmModels/", s2, ".sdm"))
   tab    <- d@run.info
   
   for(t in 1:max(tab$modelID)){
@@ -60,9 +71,12 @@ library(ggplot2)
 for(i in 1:length(unique(varimpmean$species))){
   
   d <- varimpmean[varimpmean$species==unique(varimpmean$species)[i],]
-  s <- paste0("temp/models/varimp/",
+  s <- paste0("temp/models/varimp/",         
               unique(varimpmean$species)[i],
               ".png")
+  #s <- paste0("models/varimp/",         
+  #            unique(varimpmean$species)[i],
+  #            ".png")
   
   p <- ggplot2::ggplot(data = d)+
     geom_bar(aes(y = corTest.mean, 

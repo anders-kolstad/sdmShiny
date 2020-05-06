@@ -1,15 +1,22 @@
 # Response curves
 
 #Let make response curve plots for each species and save those as well. These are the mean responses for the 5 x 3 models.
+mySpecies  <- c("Primula scandinavica", "Kobresia simpliciuscula")
+#mySpecies  <- sl()
+oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
+# oDat2       <- readRDS('data/large/allOccurences.RData') # All species
+# oDat2 <- oDat
+
+
 
 for(i in 1:length(mySpecies)){
   s      <- unique(oDat$species)[i]
   s2     <- paste0(s, "_m")
   s3     <- paste0("models/rcurves/", s, "_rcurves.png")
-  d      <- get(s2)
-  d2     <- d
+  d      <- read.sdm(paste0("models/sdmModels/", s2, ".sdm"))
   
-  p <- sdm::rcurve(d2, ylab="Habitategnethet\nHabitat suitability", 
+  
+  p <- sdm::rcurve(d, ylab="Habitategnethet\nHabitat suitability", 
                    xlab = "",
                    main = "")
   # not sure how to rename the variables:

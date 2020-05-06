@@ -4,7 +4,7 @@
 
 # This script is for downloading occurence data from GBIF for multiple species at ones. 
 # It is similar to the Rmd example that used only 2 species: https://anders-kolstad.github.io/sdmShiny/occurences
-# One should only need to run this script ones and it may take a while to run.
+# One should only need to run this script once and it may take a while to run.
 
 # Anders L. Kolstad May 2020
 
