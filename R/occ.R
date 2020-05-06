@@ -24,6 +24,12 @@ head(mySpeciesdf)
 #To get occurence data I will use the gbif function in the dismo package. 
 #It can only handle one species at the time, so I will need to make a for-loop.
 
+## Extent ####
+# We dont want to download all records, just those for Norway.
+source("R/norway.R")
+nor <- norway(lonlat = TRUE)
+ext <- raster::extent(nor)
+
 
 ### Test run ####
 #Let's do a test loop without downloading anything, just seeing how many records there are.
@@ -38,16 +44,31 @@ nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = 
 }
 
 View(nOccurences_df)
-plot(nOccurences_df$nOccurences)
+#plot(nOccurences_df$nOccurences)
 summary(nOccurences_df$nOccurences)
 
+#Let's do the same, but with an extent argument
+nOccurences_df2 <- data.frame(species = mySpecies, 
+                             nOccurences = as.numeric(NA))
 
+for(i in 1:length(mySpecies[1:80])){
+  myName  <- mySpecies[i]
+  myName2 <- stringr::str_split(myName, " ")[[1]]
+  nOccurences_df2$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F, ext = ext) 
+}
+
+View(nOccurences_df2)
+plot(nOccurences_df2$nOccurences)
+summary(nOccurences_df2$nOccurences)
+
+sum(nOccurences_df$nOccurences)
+sum(nOccurences_df2$nOccurences)
 ## Download  ####
 #For real this time:
 
 # BIG JOB ALERT # ///////////////////////////////////////////
 
-for(i in 1:length(mySpecies)){
+for(i in 1:length(mySpecies[1:80])){
   myName  <- mySpecies[i]
   myName2 <- stringr::str_split(myName, " ")[[1]]
   
@@ -56,43 +77,73 @@ for(i in 1:length(mySpecies)){
     dismo::gbif(myName2[1], myName2[2], 
                 download = T,
                 geo = T, 
-                sp = F) 
+                sp = F,
+                ext = ext) 
   )
 }
-
+# 8:42 - 
 # BIG JOB FINISHED # ///////////////////////////////////////////
+
+# basisOfRecord == "PRESERVED_SPECIMEN"
+# !is.na(year)
+# keep year
+# country == "Norway" or just clip top be sure
 
 #Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later). 
 
 
 
-qc <- data.frame(Species = mySpecies,
-                 lon_is_NA =                        as.numeric(NA),
-                 lat_NA_when_lon_not          =     as.numeric(NA),
-                 lon_is_zero =                      as.numeric(NA),
-                 lat_zero_when_lon_not = as.numeric(NA))
+qc <- data.frame(Species = mySpecies[1:80],
+                 lon_NA           =     as.numeric(NA),
+                 lat_NA           =     as.numeric(NA),
+                 lon_zero         =     as.numeric(NA),
+                 lat_zero         =     as.numeric(NA),
+                 year_NA          =     as.numeric(NA),
+                 unvalidated      =     as.numeric(NA),
+                 original_length  =     as.numeric(NA),
+                 new_length       =     as.numeric(NA),
+                 deleted          =     as.numeric(NA))
 
-for(i in 1:length(mySpecies)){
+for(i in 1:80){
   
+ 
+  d <- get(    sub(' ', '_', mySpecies[i]))
   
-  d <- get(
-    sub(' ', '_', mySpecies[i]))
-  d <- d[,c("species","lat","lon")]
+  if(!is.null(d)){
+  d <- d[,c("species","lat","lon", "year", "basisOfRecord", "occurrenceID")]
   
   # remove spaces in names (it clogs up the sdm function)
   d$species <- sub(' ', '_', d$species)
   
+  # number of records:
+  n <- nrow(d)
+  
   # remove NA's
-  w1 <- which(is.na(d$lon))
-  if(length(w1) != 0) d <- d[-w1,]
-  w2 <- which(is.na(d$lat))
-  if(length(w2) != 0) d <- d[-w2,]
+  w1 <- d$occurrenceID[which(is.na(d$lon))]
+  w2 <- d$occurrenceID[which(is.na(d$lat))]
   
   # remove those with coordinates equal to zero
-  w3 <- which(d$lon == 0)
-  if(length(w3) != 0) d <- d[-w3,]
-  w4 <- which(d$lat == 0)
-  if(length(w4) != 0) d <- d[-w4,]
+  w3 <- d$occurrenceID[which(d$lon == 0)]
+  w4 <- d$occurrenceID[which(d$lat == 0)]
+  
+  # remove those with no year
+  w5 <- d$occurrenceID[which(is.na(d$year))]
+  
+  # remove 'HUMAN OBSERVATIONS'
+  w6 <- d$occurrenceID[which(d$basisOfRecord == "HUMAN_OBSERVATION")]
+  
+  w <- c(w1, w2, w3, w4, w5, w6)
+
+  if(length(w) != 0) {d <- d[!d$occurrenceID %in% w,]}
+  
+  
+  # remaining records
+  n2 <- nrow(d)
+  
+  # deleted
+  n3 <- n-n2
+  
+  
   
   assign(
     sub(' ', '_', mySpecies[i]),  d)
@@ -101,26 +152,65 @@ for(i in 1:length(mySpecies)){
   qc[i,3] <- length(w2)
   qc[i,4] <- length(w3)
   qc[i,5] <- length(w4)
+  qc[i,6] <- length(w5)
+  qc[i,7] <- length(w6)
+  qc[i,8] <- n
+  qc[i,9] <- n2
+  qc[i,10] <- n3
   
+  } else{
+    name <- as.name(sub(' ', '_', mySpecies[i]))
+    rm(name)}
 }
 
 
 #A dataframe called qc tells us what has happened.
-qc
+View(qc)
+
+# OBS. fitModels should not use mySpecies as before, since species get dropped is there are no records.
 
 #Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
 
-for(i in 1:length(mySpecies)){
+
+for(i in 1:80){
   
-  d <- get(
-    sub(' ', '_', mySpecies[i]))
+  name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+    
+  d <- get( name   )
   
+  if(is.data.frame(d)){
+   if(nrow(d)>30){
   sp::coordinates(d) <- ~lon + lat
   sp::proj4string(d) <- sp::proj4string(raster::raster())
   
   assign(
     sub(' ', '_', mySpecies[i]),  d)
+  } else{
+    name <- sub(' ', '_', mySpecies[i])
+    rm(list = name)
+    } # rm if <30 records
+  } # is.data.frame
+  } # if exists
 }
+
+
+
+# If the above loop didn't work..:
+#for(i in 1:80){
+#  
+#  name <- sub(' ', '_', mySpecies[i])
+#  
+#  if(exists(name)){
+#    d <- get(  name)}
+#  
+#  if(class(d) == "SpatialPointsDataFrame"){
+#  
+#  
+#  if(length(d) < 30){
+#        rm(list = name)}
+#  } # if spatial points
+#  }
 
 
 # CLIP
@@ -133,52 +223,67 @@ raster::plot(outline)
 # BIG JOB ALERT # ///////////////////////////////////////////
 
 
-for(i in 1:length(mySpecies)){
+for(i in 1:80){
 
-d <- get(
-sub(' ', '_', mySpecies[i]))
+  name <- sub(' ', '_', mySpecies[i])
+  
+  if(exists(name)){
+    
+    d <- get( name   )
+    d <- raster::crop(d, outline)
 
-d <- raster::crop(d, outline)
+   assign(name,  d)
+  } # if exists
+ }
 
-assign(
-sub(' ', '_', mySpecies[i]),  d)
-}
-
+# >30min
 
 # Let's see it it worked.
+#raster::plot(nor)
+#raster::plot(Ajuga_reptans, add=T)
+#raster::plot(Ulmus_glabra, add=T)
+
+#mapview::mapview(Ajuga_reptans, 
+#                 map.types = c("Esri.WorldShadedRelief",
+#                               "Esri.WorldImagery"),
+#                 cex = 5, lwd = 0,
+#                 alpha.regions = 0.5,
+#                 col.regions = "blue")
 
 
 # Now we just need to get this over to UTM32 to match the IV data, and save it on file.
 myIVs      <- raster::stack('data/IV.grd')
 
-for(i in 1:length(mySpecies)){
-  
-  d <- get(
-    sub(' ', '_', mySpecies[i]))
+for(i in 1:80){
+  name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+  d <- get(name)
   
   d <- sp::spTransform(d, myIVs[[1]]@crs)
   
-  assign(
-    sub(' ', '_', mySpecies[i]),  d)
-}
+  assign(name,  d)
+}}
+
 
 oDat <- get(sub(' ', '_', mySpecies[1]))
-for(i in 2:length(mySpecies)){
-  oDat <- rbind(oDat, get(sub(' ', '_', mySpecies[i])))
-}
-
-saveRDS(oDat, 'data/large/allOccurences.RData')
-
-
-
-
-oDat <- readRDS('data/large/oDat.RData')
+for(i in 2:80){
+    name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+    d    <- get(name)
+    oDat <- rbind(oDat, d)
+}}
 
 
+#nor2 <- norway(lonlat = FALSE)
+#par(mfrow=c(1,2))
+#raster::plot(nor2)
+#raster::plot(oDat, add=T)
+#raster::plot(nor2)
+#raster::plot(oDat[oDat$species == "Ulmus_glabra",], add=T)
 
-# Check that they are inside Norway
-raster::plot(myIVs$Forest_Productivity)
-raster::plot(oDat,add=T)
+saveRDS(oDat, 'data/large/allOccurences1-80.RData')
+
+#testImp <- readRDS('data/large/allOccurences1-80.RData')
 
 
 
