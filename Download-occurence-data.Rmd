@@ -39,44 +39,49 @@ head(mySpecies)
 ## Occurence data
 To get occurence data I will use the gbif function in the dismo package. It can only handle one species at the time, so I will need to make a for-loop.
 
-```{r}
-head(mySpecies)
-```
-
-This is my species list with correct spelling (direct from ADB).
+This  species list has correct spelling (direct from ADB).
 To test the functions I will use a shorter list of 10 species.
 
 ```{r}
-mySpecies2 <- mySpecies[1:10]
+mySpecies <- mySpecies[1:10]
 ```
 
 ### Test run 
-Let's do a test loop without downloading anything, just seeing how many records there are.
+Let's do a test loop without downloading anything, just seeing how many records there are.  We dont want to download all records, just those for Norway, so we need to set a extent. This is a rectangular extent, so we'll still get records from other countries.
+
 ```{r}
-nOccurences_df <- data.frame(species = mySpecies2, 
+source("R/norway.R")
+nor <- norway(lonlat = TRUE)
+ext <- raster::extent(nor)
+
+nOccurences_df <- data.frame(species = mySpecies, 
                   nOccurences = as.numeric(NA))
 
-for(i in 1:length(mySpecies2)){
-  myName  <- mySpecies2[i]
+for(i in 1:length(mySpecies)){
+  myName  <- mySpecies[i]
   myName2 <- stringr::str_split(myName, " ")[[1]]
-  nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F) 
+  nOccurences_df$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], 
+                                               download = F,
+                                               ext = ext) 
 }
 
 nOccurences_df
 ```
-This shows some of the bias in the occurence data. For example that B arvensis, a super rare plant found almost only on Hovedøya, an island outside of Oslo, has 37k records, whereas P. scandinavica, a relatively common plant, has 321. However, I'm pretty sure occurences within the same 1x1 km cell will only count as one (duplicates removed by the sdm function.)
+
+To see how many records we would be downloading:
+```{r}
+sum(nOccurences_df$nOccurences)
+```
 
 For the next part I will use two species with a quite low number of records to reduce processing time and test potentias problems due to low sample sizes.
 ```{r}
-mySpecies3 <- mySpecies[mySpecies == c("Primula scandinavica", "Kobresia simpliciuscula")]
-# write.csv(mySpecies3, 'data/species_list.csv')
+mySpecies <- c("Primula scandinavica", "Kobresia simpliciuscula")
 ```
 
 For fun. lets see what these plants look like.
-```{r, eval = F}
+```{r, eval = F, echo=F}
 list.files("./figures/plants")
 ```
-
 
 ![Alt text](figures/plants/Kobresia_simpliciuscula_Andrey_Zharkikh_CCBY2.jpg)
 Picture: *Kobresia simpliciuscula* (Andrey Zharkikh CC-BY 2.0)
@@ -87,63 +92,97 @@ Picture: *Primula scandinavica* (Anders Kolstad CC-BY 4.0)
 (Note: The picture sizes are 250p and 400p, respectively)
 
 ## Download
-For real this time:
+For real this time. This take some time, about 30 min for 300k records.
 
 ```{r}
-for(i in 1:length(mySpecies3)){
-  myName  <- mySpecies3[i]
+for(i in 1:length(mySpecies)){
+  myName  <- mySpecies[i]
   myName2 <- stringr::str_split(myName, " ")[[1]]
   
   assign(
-    sub(' ', '_', mySpecies3[i]), 
+    sub(' ', '_', mySpecies[i]), 
          dismo::gbif(myName2[1], myName2[2], 
                                         download = T,
                                         geo = T, 
-                                        sp = F) 
+                                        sp = F,
+                                        ext = ext) 
   )
 }
 ```
 
-Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. I only need the species names and the coordinates (perhaps some more, but I can add those later). 
-
+Two new dataframes are put in the environment. They have a lot of columns to start with, so lets get rid of som to make the objects smaller. 
 
 ```{r}
-qc <- data.frame(Species = mySpecies3,
-                 lon_is_NA =                        as.numeric(NA),
-                 lat_NA_when_lon_not          =     as.numeric(NA),
-                 lon_is_zero =                      as.numeric(NA),
-                 lat_zero_when_lon_not = as.numeric(NA))
+qc <- data.frame(Species = mySpecies,
+                 lon_NA           =     as.numeric(NA),
+                 lat_NA           =     as.numeric(NA),
+                 lon_zero         =     as.numeric(NA),
+                 lat_zero         =     as.numeric(NA),
+                 year_NA          =     as.numeric(NA),
+                 unvalidated      =     as.numeric(NA),
+                 not_Norway       =     as.numeric(NA),
+                 original_length  =     as.numeric(NA),
+                 new_length       =     as.numeric(NA),
+                 deleted          =     as.numeric(NA))
 
-for(i in 1:length(mySpecies3)){
+for(i in 1:length(mySpecies)){
   
+  name <- sub(' ', '_', mySpecies[i])
+  d    <- get(name)
   
-  d <- get(
-           sub(' ', '_', mySpecies3[i]))
-  d <- d[,c("species","lat","lon")]
+  if(!is.null(d)){
+  d <- d[,c("species","lat","lon", "year", "basisOfRecord", "occurrenceID", "country")]
   
   # remove spaces in names (it clogs up the sdm function)
   d$species <- sub(' ', '_', d$species)
   
+  # number of records:
+  n <- nrow(d)
+  
   # remove NA's
-  w1 <- which(is.na(d$lon))
-  if(length(w1) != 0) d <- d[-w1,]
-  w2 <- which(is.na(d$lat))
-  if(length(w2) != 0) d <- d[-w2,]
+  w1 <- d$occurrenceID[which(is.na(d$lon))]
+  w2 <- d$occurrenceID[which(is.na(d$lat))]
   
   # remove those with coordinates equal to zero
-  w3 <- which(d$lon == 0)
-  if(length(w3) != 0) d <- d[-w3,]
-  w4 <- which(d$lat == 0)
-  if(length(w4) != 0) d <- d[-w4,]
+  w3 <- d$occurrenceID[which(d$lon == 0)]
+  w4 <- d$occurrenceID[which(d$lat == 0)]
+  
+  # remove those with no year
+  w5 <- d$occurrenceID[which(is.na(d$year))]
+  
+  # remove 'HUMAN OBSERVATIONS'
+  w6 <- d$occurrenceID[which(d$basisOfRecord == "HUMAN_OBSERVATION")]
+  
+  # remove those from other countries
+  w7 <- d$occurrenceID[which(d$country != "Norway")]
+  
+  w <- c(w1, w2, w3, w4, w5, w6, w7)
+
+  if(length(w) != 0) {d <- d[!d$occurrenceID %in% w,]}
+  
+  # remaining records
+  n2 <- nrow(d)
+  
+  # deleted
+  n3 <- n-n2
   
   assign(
-      sub(' ', '_', mySpecies3[i]),  d)
+    sub(' ', '_', mySpecies[i]),  d)
   
   qc[i,2] <- length(w1)
   qc[i,3] <- length(w2)
   qc[i,4] <- length(w3)
   qc[i,5] <- length(w4)
+  qc[i,6] <- length(w5)
+  qc[i,7] <- length(w6)
+  qc[i,8] <- length(w7)
+  qc[i,9] <- n
+  qc[i,10] <- n2
+  qc[i,11] <- n3
   
+  } else{
+    
+    rm(list = name)}
 }
 ```
 
@@ -151,20 +190,32 @@ A dataframe called qc tells us what has happened.
 ```{r}
 qc
 ```
-We have cut 787 rows from the Kobresia and 172 from Primula, due to missing coordinates.
+We have cut 717 rows from the Kobresia and 57 from Primula. Mostly these were human observations. We're only keeping 'preserved specimen' and 'material sample'.
+
+We can save these dataframes for reviewing later.
+```{r}
+#write.csv(qc, file='misc/putNameHere.csv')
+```
 
 Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
 ```{r}
-for(i in 1:length(mySpecies3)){
+for(i in 1:length(mySpecies)){
   
-  d <- get(
-           sub(' ', '_', mySpecies3[i]))
+  name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){    # the dataframe would have been deleted in the last step if there was no records downloaded
+    d <- get( name   )
   
-  sp::coordinates(d) <- ~lon + lat
-  sp::proj4string(d) <- sp::proj4string(raster::raster())
-  
-  assign(
-      sub(' ', '_', mySpecies3[i]),  d)
+  if(is.data.frame(d)){
+    if(nrow(d)>30){
+      sp::coordinates(d) <- ~lon + lat
+      sp::proj4string(d) <- sp::proj4string(raster::raster())
+      assign(name  ,  d)
+  } else{
+      rm(list = name)
+    
+    } # rm if <30 records
+  } # is.data.frame
+  } # if exists
 }
 
 ```
@@ -186,7 +237,7 @@ mapview::mapview(Primula_scandinavica,
                  alpha.regions = 0.5,
                  col.regions = "blue")
 ```
-First, notice that Kobresia is called Carex in GBIF, but Kobresia in ADB. This is not a problem and they are recognised as synonyms. The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the points that fall on Norway. First we need something to clip against, so we'll get an outline of Norway. 
+The Kobresia is a widespread species, whereas the Primula is endemic to Norway and Sweden. We only need the points that fall on Norway so we set counrty == Norway before. I'm not sure if the country is typed by the recorder or generated automatically from the coordinates. We don't want records that fall outside the IV raster extent so we can clip the data against an outline of Norway just to be sure. First we need something to clip against, so we'll get an outline of Norway. 
 ```{r}
 # outline <- norway()
 #saveRDS(outline, "data/large/outline_Norway.RData") # 1.8MB
@@ -194,58 +245,50 @@ outline <- readRDS("data/large/outline_Norway.RData")
 raster::plot(outline)
 ```
 
-Now to clip away occurences outside this polygon (can take a few minutes)
+Now to clip away occurences outside this polygon (this takes a long time when there are several species)
 ```{r}
-
-for(i in 1:length(mySpecies3)){
-  
-  d <- get(
-           sub(' ', '_', mySpecies3[i]))
-  
-  d <- raster::crop(d, outline)
-  
-  assign(
-      sub(' ', '_', mySpecies3[i]),  d)
-}
-
+for(i in 1:length(mySpecies)){
+  name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+    d <- get( name   )
+    d <- raster::crop(d, outline)
+    assign(name,  d)
+  } # if exists
+ }
 ```
 
 Let's see it it worked.
-
 ```{r}
-mapview::mapview(Kobresia_simpliciuscula, 
-                 map.types = c("Esri.WorldShadedRelief",
-                               "Esri.WorldImagery"),
-                 cex = 5, lwd = 0,
-                 alpha.regions = 0.5,
-                 col.regions = "blue")
+raster::plot(nor)
+raster::plot(Primula_scandinavica, pch = 1, add=T)
+raster::plot(Kobresia_simpliciuscula, pch = 3, add=T)
 ```
 
-```{r}
-mapview::mapview(Primula_scandinavica, 
-                 map.types = c("Esri.WorldShadedRelief",
-                               "Esri.WorldImagery"),
-                 cex = 5, lwd = 0,
-                 alpha.regions = 0.5,
-                 col.regions = "blue")
-```
 Looks like it. Now we just need to get this over to UTM32 to match the IV data, and save it on file.
+```{r}
+myIVs      <- raster::stack('data/IV.grd')
+```
+
+
 ```{r, eval = FALSE}
-for(i in 1:length(mySpecies3)){
-  
-  d <- get(
-           sub(' ', '_', mySpecies3[i]))
-  
+for(i in 1:length(mySpecies)){
+  name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+  d <- get(name)
   d <- sp::spTransform(d, myIVs[[1]]@crs)
-  
-  assign(
-      sub(' ', '_', mySpecies3[i]),  d)
+  assign(name,  d)
+ }
 }
 
-oDat <- get(sub(' ', '_', mySpecies3[1]))
-for(i in 2:length(mySpecies3)){
-  oDat <- rbind(oDat, get(sub(' ', '_', mySpecies3[i])))
-  }
+# put all the data together in one file
+oDat <- get(sub(' ', '_', mySpecies[1]))
+for(i in 2:length(mySpecies)){
+    name <- sub(' ', '_', mySpecies[i])
+  if(exists(name)){
+    d    <- get(name)
+    oDat <- rbind(oDat, d)
+}}
+
 saveRDS(oDat, 'data/large/oDat.RData')
 rm(oDat)
 ```
@@ -255,7 +298,6 @@ oDat <- readRDS('data/large/oDat.RData')
 ```
 
 ```{r}
-myIVs              <- raster:: stack('data/IV.grd')
 raster::plot(myIVs$Forest_Productivity)
 raster::plot(oDat,add=T)
 ```
@@ -280,3 +322,11 @@ df
 
 ```
 Not very good for the Primula, and this species was also much harder to model.
+
+Let's finally look at the temporal ditribution
+```{r}
+hist(oDat$year, main = "", xlab = "Year", ylab = "# records")
+text(1900, 120, paste("mean year =", round(mean(oDat$year))))
+```
+
+The mean year is far from the year of the cervid data which is 1999. The papers used only records after 1990 "to reflect recent distribution". I will leave this subsetting for the modelling step and keep the data like this on file.

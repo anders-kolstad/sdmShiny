@@ -41,6 +41,9 @@ alp_sl <- c("Botrychium lanceolatum",
 # The redlist is downloaded from here:
 # https://artsdatabanken.no/Rodliste2015/sok?vurderings%u00e5r=2015
 
+# OBS. There is no part of this function to remove duplicates. Add:
+# myData <- myData[!duplicated(myData)]
+
 # First, the (v)ascular (f)orest plants (karplanter) in the (r)ed (l)ist:
 vf_rl <- readxl::read_excel("./raw data/vasc_rl.xlsx")
 vf_sl<-droplevels(vf_rl[grep('*beit*',vf_rl$Påvirkningsfaktorer,ignore.case=T),])

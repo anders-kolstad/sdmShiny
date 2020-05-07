@@ -51,7 +51,7 @@ summary(nOccurences_df$nOccurences)
 nOccurences_df2 <- data.frame(species = mySpecies, 
                              nOccurences = as.numeric(NA))
 
-for(i in 1:length(mySpecies[1:80])){
+for(i in 1:length(mySpecies)){
   myName  <- mySpecies[i]
   myName2 <- stringr::str_split(myName, " ")[[1]]
   nOccurences_df2$nOccurences[i] <- dismo::gbif(myName2[1], myName2[2], download = F, ext = ext) 
@@ -68,7 +68,7 @@ sum(nOccurences_df2$nOccurences)
 
 # BIG JOB ALERT # ///////////////////////////////////////////
 
-for(i in 1:length(mySpecies[1:80])){
+for(i in 1:length(mySpecies)){
   myName  <- mySpecies[i]
   myName2 <- stringr::str_split(myName, " ")[[1]]
   
@@ -93,24 +93,26 @@ for(i in 1:length(mySpecies[1:80])){
 
 
 
-qc <- data.frame(Species = mySpecies[1:80],
+qc <- data.frame(Species = mySpecies,
                  lon_NA           =     as.numeric(NA),
                  lat_NA           =     as.numeric(NA),
                  lon_zero         =     as.numeric(NA),
                  lat_zero         =     as.numeric(NA),
                  year_NA          =     as.numeric(NA),
                  unvalidated      =     as.numeric(NA),
+                 not_Norway       =     as.numeric(NA),
                  original_length  =     as.numeric(NA),
                  new_length       =     as.numeric(NA),
                  deleted          =     as.numeric(NA))
 
-for(i in 1:80){
+length(mySpecies)
+for(i in 1:length(mySpecies)){
   
- 
-  d <- get(    sub(' ', '_', mySpecies[i]))
+  name <- sub(' ', '_', mySpecies[i])
+  d    <- get(name)
   
   if(!is.null(d)){
-  d <- d[,c("species","lat","lon", "year", "basisOfRecord", "occurrenceID")]
+  d <- d[,c("species","lat","lon", "year", "basisOfRecord", "occurrenceID", "country")]
   
   # remove spaces in names (it clogs up the sdm function)
   d$species <- sub(' ', '_', d$species)
@@ -132,7 +134,10 @@ for(i in 1:80){
   # remove 'HUMAN OBSERVATIONS'
   w6 <- d$occurrenceID[which(d$basisOfRecord == "HUMAN_OBSERVATION")]
   
-  w <- c(w1, w2, w3, w4, w5, w6)
+  # remove those from other countries
+  w7 <- d$occurrenceID[which(d$country != "Norway")]
+  
+  w <- c(w1, w2, w3, w4, w5, w6, w7)
 
   if(length(w) != 0) {d <- d[!d$occurrenceID %in% w,]}
   
@@ -154,25 +159,28 @@ for(i in 1:80){
   qc[i,5] <- length(w4)
   qc[i,6] <- length(w5)
   qc[i,7] <- length(w6)
-  qc[i,8] <- n
-  qc[i,9] <- n2
-  qc[i,10] <- n3
+  qc[i,8] <- length(w7)
+  qc[i,9] <- n
+  qc[i,10] <- n2
+  qc[i,11] <- n3
   
   } else{
-    name <- as.name(sub(' ', '_', mySpecies[i]))
-    rm(name)}
+    
+    rm(list = name)}
 }
 
 
 #A dataframe called qc tells us what has happened.
 View(qc)
+#write.csv(qc, file='misc/reducingOccurenceMySpecies81-160')
+#saveRDS(qc, file='misc/reducingOccurenceMySpecies81-160')
 
 # OBS. fitModels should not use mySpecies as before, since species get dropped is there are no records.
 
 #Now we can turn the dataframes into spatialPointsDataFrames, define the CRS, and plot the points. The dataset comes as lonlat.
 
 
-for(i in 1:80){
+for(i in 1:length(mySpecies)){
   
   name <- sub(' ', '_', mySpecies[i])
   if(exists(name)){
@@ -187,7 +195,6 @@ for(i in 1:80){
   assign(
     sub(' ', '_', mySpecies[i]),  d)
   } else{
-    name <- sub(' ', '_', mySpecies[i])
     rm(list = name)
     } # rm if <30 records
   } # is.data.frame
@@ -223,7 +230,7 @@ raster::plot(outline)
 # BIG JOB ALERT # ///////////////////////////////////////////
 
 
-for(i in 1:80){
+for(i in 1:length(mySpecies)){
 
   name <- sub(' ', '_', mySpecies[i])
   
@@ -240,8 +247,8 @@ for(i in 1:80){
 
 # Let's see it it worked.
 #raster::plot(nor)
-#raster::plot(Ajuga_reptans, add=T)
-#raster::plot(Ulmus_glabra, add=T)
+#raster::plot(Rumex_bryhnii, add=T)
+#raster::plot(Stellaria_hebecalyx, add=T)
 
 #mapview::mapview(Ajuga_reptans, 
 #                 map.types = c("Esri.WorldShadedRelief",
@@ -254,7 +261,7 @@ for(i in 1:80){
 # Now we just need to get this over to UTM32 to match the IV data, and save it on file.
 myIVs      <- raster::stack('data/IV.grd')
 
-for(i in 1:80){
+for(i in 1:length(mySpecies)){
   name <- sub(' ', '_', mySpecies[i])
   if(exists(name)){
   d <- get(name)
@@ -266,7 +273,7 @@ for(i in 1:80){
 
 
 oDat <- get(sub(' ', '_', mySpecies[1]))
-for(i in 2:80){
+for(i in 2:length(mySpecies)){
     name <- sub(' ', '_', mySpecies[i])
   if(exists(name)){
     d    <- get(name)
@@ -281,11 +288,16 @@ for(i in 2:80){
 #raster::plot(nor2)
 #raster::plot(oDat[oDat$species == "Ulmus_glabra",], add=T)
 
-saveRDS(oDat, 'data/allOccurences1-80.RData')
+#saveRDS(oDat, 'data/allOccurences80-160.RData')
 
-#testImp <- readRDS('data/large/allOccurences1-80.RData')
+d1 <- readRDS('data/allOccurences1-80.RData')
+d2 <- readRDS('data/allOccurences80-160.RData')
+# remove country from d2
+d3 <- d2[,!names(d2) %in% c("country")]
+d <- rbind(d1, d3)
 
-
+length(unique(d$species)) # 134 species
+#saveRDS(d, 'data/allOccurences.RData')
 
 ## Check sample sizes
 #Let's see how mny point there are for each species, and how many of these that fall on the same 1x1 km grid cells.
