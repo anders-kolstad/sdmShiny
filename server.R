@@ -1,5 +1,3 @@
-# Load packages ####
-
 library(shiny)
 library(raster)
 library(sdm)
@@ -7,102 +5,24 @@ library(rasterVis)
 library(gridExtra)
 library(rgdal)
 library(grDevices)
-
-
-# Possible error:
-# Make sure that all necessary packages are installed for the same user set under run_as in your Shiny Server configuration file.
-# https://support.rstudio.com/hc/en-us/articles/231249288-Why-does-my-app-work-locally-but-not-on-my-Shiny-Server-
+library(dismo)
 
 
 
-
-# * * * *  INFO * * * * ####
-
-# Model objects:
-# 5*3 model = _m
-# Replicated single method = _ms
-# Best candidate model = _bcm
-
-# Species:
-# Primula_scandinavica
-# Carex_simpliciuscula
-
-# IVs:
-# Temperature
-# Precipitation
-# Soil pH
-# Sheep and reindeer
-
-
-# * * * *  Start * * * * #####
-
-# import species list
-#s <- read.csv('data/species_list.csv')
-#s <- as.vector(s$x)   # ADB names
-
-
-
+IV <- raster::stack("./models/IVapp.grd")
+Kobresia_new.sdm <- read.sdm("models/sdmModels/Kobresia_new.sdm")
+p <- raster::predict(Kobresia_new.sdm, IV, 
+                     mean=TRUE, 
+                     filename  = "models/predictions/app/Kobresia.img",
+                     overwrite=TRUE)
 
 shinyServer(
   function(input, output) {
-  
-    # Get IVs ####
-    IV <- raster::stack("./models/IVapp.grd")
-    #cat(stderr(), "load raster")
-    
-    #modify IVs ####
-    #with selectable parameters
-    output$map <- renderText({
-      
-      IV2                  <-IV
-      IV2$TundraHerbivores <-IV2$TundraHerbivores * (input$herbivory/100 + 1)
-      IV2$temp             <-IV2$temp             + input$temperature         
-      IV2$prec             <-IV2$prec             + input$precipitation
-    
-  
-     #cat(stderr(), "change IV")
-     
-     # Get species name  ####
-     ss <- input$species
-     ss2 <- sub(' ', '_', ss)
-     #cat(stderr(), "alter input species names")
+    output$map <- renderPlot({
    
-   cols <- colorRampPalette(c("beige", "darkgreen" ))
-   #plot(IV$temp)
-   
-   
-   m <- sdm::read.sdm(paste0("models/sdmModels/", ss2, "_5maxent.sdm"))
-   
-   
-   #cat(stderr(), "read ensemble model")
-    
-    fn <- paste0("./models/predictions/app/", ss2, "_ens2.img")
-    if(file.exists(fn)){file.remove(fn)}
-    fn2 <- paste0("./models/predictions/app/", ss2, "_ens2.img.aux.xml")
-    if(file.exists(fn2)){file.remove(fn2)}
-    
-    
-    withProgress(message = 
-                "I'm working on making predictions based on your 
-                input choices - please wait" , value = 0, {
-                   
-                   
-     #remake model object after sdm package update ?
-     #plot(sdm::ensemble(m, 
-     #                  newdata = IV2, 
-     #                  #filename = fn, 
-     #                 #overwrite=TRUE,   
-     #                setting = list(method='weighted', stat = 'AUC')
-     #                ))
-  
-      fn <- paste0("models/predictions/app/", ss2, "_ens2.img")
-      #ras <- raster::predict(m, IV2, filename = fn, overwrite=TRUE, mean = TRUE)
-      #plot(ras)
-      #print(ras@ncols)
-      fn
-      
-                }) #progress
-         }) #render
+    plot(p)
+
+         }) #renderPlot
     
     
    
@@ -126,6 +46,8 @@ shinyServer(
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
       outfile2 <- paste0("models/varimp/", ss2, ".png")
+      # here we can generate on the fly perhaps.
+      
       
       list(src = outfile2,
            contentType = 'image/png',
@@ -136,6 +58,10 @@ shinyServer(
       
     }, deleteFile = FALSE) #renderImage
     
+    output$varimptext <- renderText({
+      ss <- input$species
+      paste("This figure shows which variables are most important, according to this mode, in determening the distribution of", ss)
+    })
           }) # app
 
 

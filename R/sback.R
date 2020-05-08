@@ -38,7 +38,13 @@ library(grDevices)
 #s <- read.csv('data/species_list.csv')
 #s <- as.vector(s$x)   # ADB names
 
-
+# Get all model object
+# saves time to have this outside the server function
+#fn <- list.files("models/sdmModels/", pattern = ".sdm")
+#for(i in 1:length(fn)){
+#  d <- read.sdm(paste0("models/sdmModels/", fn[i]))
+#  assign(fn[i], d)
+#}
 
 
 shinyServer(
@@ -152,7 +158,6 @@ shinyServer(
       
     }) # render plot
     
-    
     output$rcurves <- renderImage({
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
@@ -173,6 +178,8 @@ shinyServer(
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
       outfile2 <- paste0("models/varimp/", ss2, ".png")
+      # here we can generate on the fly perhaps.
+      
       
       list(src = outfile2,
            contentType = 'image/png',
@@ -182,6 +189,11 @@ shinyServer(
       
       
     }, deleteFile = FALSE) #renderImage
+    
+    output$varimptext <- renderText({
+      ss <- input$species
+      paste("This figure shows which variables are most important, according to this mode, in determening the distribution of", ss)
+    })
     
     })  # app
 

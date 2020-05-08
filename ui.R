@@ -37,8 +37,10 @@ shinyUI(fluidPage(
     
     mainPanel(
       tabsetPanel(
-        tabPanel("Plots", textOutput("map")), 
-        tabPanel("Variable importance", imageOutput("varimp")), 
+        tabPanel("Plots", plotOutput("map")), 
+        tabPanel("Variable importance", 
+                 textOutput("varimptext"),
+                   imageOutput("varimp")), 
         tabPanel("Response curves", imageOutput("rcurves"))
       ))
     
