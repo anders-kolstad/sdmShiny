@@ -10,11 +10,16 @@
 library(sdm)
 source("./R/spList.R")
 myIVs      <- raster::stack('data/IV.grd')
-mySpecies  <- c("Primula scandinavica", "Kobresia simpliciuscula")
+#oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
+# oDat       <- readRDS('data/allOccurences.RData') # All species
+
+
+
+#mySpecies  <- c("Primula scandinavica", "Kobresia simpliciuscula")
 #mySpecies  <- sl()
-oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
-# oDat2       <- readRDS('data/large/allOccurences.RData') # All species
-# oDat2 <- oDat
+#mySpecies <- 
+  unique(oDat$species)
+# UPDATE NEEDED: remove records prior to 1990
 
 ## SDM-data object ####
 
