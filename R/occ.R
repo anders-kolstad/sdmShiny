@@ -7,6 +7,7 @@
 # One should only need to run this script once and it may take a while to run.
 
 # Anders L. Kolstad May 2020
+# COMMENT 12 may: rgbif::get_occ is probably more suited than dismo::gbif. See background_dat.R for example use.
 
 ##  Get species list ####
 #This function  produces a list of species that we will later use to harvest occurence data from gbif. 

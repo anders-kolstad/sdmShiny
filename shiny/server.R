@@ -1,3 +1,7 @@
+# Run setwd to test locally, but don't include in server version
+#setwd("shiny/")
+
+
 library(shiny)
 library(sdm)
 library(rasterVis)
@@ -9,9 +13,8 @@ library(rgdal)
 #library(grDevices)
 #library(dismo)
 
-
 # Independenet variables
-IV <- raster::stack("./models/IVapp.grd")
+IV <- raster::stack("IVapp.grd")
 
 # Define colour palette
 cols <- colorRampPalette(c("beige", "darkgreen" ))
@@ -42,17 +45,17 @@ shinyServer(
 
       # Predictions
         # Get model object (best (out of 15) candidate model)
-        m       <- read.sdm(paste0("models/sdmModels/", ss2, "_bcm.sdm"))
+        m       <- read.sdm(paste0("sdmModels/", ss2, "_bcm.sdm"))
         
       # -get img with predicted current habitat suitability
-        current <- stack(paste0("models/predictions/", ss2, "_bcm.img"))
+        current <- stack(paste0("predictions/", ss2, "_bcm.img"))
         
       # -make new predictions based o user input
         if(input$herbivory == 0 & input$temperature == 0 & input$precipitation == 0){
           pred <- current
         } else{
           pred    <- predict(m, IV2, mean=TRUE,
-                             filename = "models/predictions/app/predicted.img",
+                             filename = "predictions/app/predicted.img",
                              overwrite=TRUE)
         }
         diff <- pred-current
@@ -169,6 +172,9 @@ Start by selecting a species in the dropdown meny in the left. These are (curren
             ")
     })  # renderText
     
+    observeEvent(input$reset_input, {
+      shinyjs::reset("side-panel")
+    })
     
           }) # app
 

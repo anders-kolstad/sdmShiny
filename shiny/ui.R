@@ -1,10 +1,10 @@
-# SDM-Shiny
+# Run setwd to test locally, but don't include in server version
+#setwd("shiny/")
 
 library(shiny)
-  
-
-# Get species list
-myS <- list.files("models/sdmModels/", pattern = ".sdm")
+library(shinyjs)
+# Get species list ####
+myS <- list.files("sdmModels/", pattern = ".sdm")
 myS2 <- as.list(NA)
 for(i in 1:length(myS)){
   myS2[i] <- 
@@ -21,6 +21,8 @@ shinyUI(fluidPage(
   
   sidebarLayout(
     sidebarPanel(
+      shinyjs::useShinyjs(),
+      id = "side-panel",
       helpText("Explore effects of changing climate and herbivore densities on distribution of rare plant species."),
       
       
@@ -45,7 +47,9 @@ shinyUI(fluidPage(
       
       sliderInput("precipitation", 
                   label = "Change in annual precipitation (%):",
-                  min = -50, max = 50, value = c(0))
+                  min = -50, max = 50, value = c(0)),
+      
+      actionButton("reset_input", "Reset inputs")
     ) ,
     
     mainPanel(
@@ -56,7 +60,7 @@ shinyUI(fluidPage(
                  textOutput("credits")), 
         tabPanel("Variable importance", 
                  textOutput("varimptext"),
-                   imageOutput("varimp")), 
+                 imageOutput("varimp")), 
         tabPanel("Response curves", imageOutput("rcurves")),
         tabPanel("Help", 
                  textOutput("help"),
