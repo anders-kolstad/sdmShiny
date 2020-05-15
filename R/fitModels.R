@@ -93,9 +93,12 @@ bg3 <- cbind(bg2,rasValue)
 head(bg3)
 #bg3x <- bg3[complete.cases(bg3),] # alsost the same
 bg4 <- bg3[sample(1:nrow(bg3), 1000),]
+rm(bg, bg2, bg3, rasValue)
+
+
+
 
 ## SDM-data object ####
-
 
 for(i in 1:length(myAlpine)){
   s    <- myAlpine[i]
@@ -179,11 +182,55 @@ for(i in 1:length(myS)){
 mySpecies <- unique(as.character(myS2))
 length(mySpecies) # 85
 
-## 5 x 3 models
+
+# GAM ####
+# There is  compromise between model accuracy and model object file size (need to be low to allow many species in the shinyapps bundle), I have ended up using a single method (gam, one of the most successful in trils) with 5 replicates (because gams sometimes fail, and varImp variesa lot between runs). They should  differ more when the number of observations is very low because then you could get 'unlucky' with the partitioning. 
+
+for(i in 1:length(mySpecies)){
+  
+  s       <- mySpecies[i]
+  file1   <- paste0("models/sdmData/", s, "_d.sdd")
+  obj     <- paste0(s, "_3gams")
+  file2   <- paste0("shiny/sdmModels/", obj)
+  d      <- sdm::read.sdm(file1)
+  
+  mod <- sdm::sdm(.~.,
+                  data = d, 
+                  methods = c('gam'),
+                  replication = c('boot'), n=3)     
+  if(any(mod@run.info$success)){
+  sdm::write.sdm(mod, file2, overwrite=TRUE)
+  }
+}
+
+
+
+
+# END #### -----------------------------------------------------------------------------
+# The stuff below is just for future reference
+
+
+# pick the best one out of the three
+for(i in 12:length(mySpecies)){
+  s <- mySpecies[i]
+  mod <- sdm::read.sdm(paste0("models/sdmModels/", s, "_maxent3.sdm"))
+  if(any(mod@run.info$success)){
+    s3 <- getEvaluation(mod)
+    file <- paste0("shiny/sdmModels/", s, "_maxent")
+    best <- s3$modelID[which.max(s3$AUC)]
+    mod2 <- mod[[best]]
+    
+    # save the model object for easy lading in the shiny app.
+    sdm::write.sdm(mod2, file, overwrite=TRUE)
+  }
+}
+
+
+## 5 x 3 models ####
 #We don't have any independent test data so I'll use bootstrapping to partition test data, and I'll do that 5 times. I shouldn't do much less because there are very few data points for some of the species. Records from inside the same 1km cells will be counted as duplicates and removed. I will use 3 methods as well, resulting in 3 x 5 = 15 models per species. 
 
-#mySpecies2 <- mySpecies
-#mySpecies <- mySpecies[1:10]
+mySpecies2 <- mySpecies
+mySpecies <- mySpecies[1:30]
 
 for(i in 1:length(mySpecies)){
   
@@ -210,10 +257,11 @@ for(i in 1:length(mySpecies)){
 
 
 
-for(i in 1:length(mySpecies)){
+for(i in 12:length(mySpecies)){
   s <- mySpecies[i]
   s2 <- paste0(s, "_m")
   mod <- sdm::read.sdm(paste0("models/sdmModels/", s, "_m.sdm"))
+  if(any(mod@run.info$success)){
   s3 <- getEvaluation(mod)
   file <- paste0("shiny/sdmModels/", s, "_bcm")
   best <- s3$modelID[which.max(s3$AUC)]
@@ -231,19 +279,20 @@ for(i in 1:length(mySpecies)){
   #       mod3)
   
   #rm(s, s2, s3, file, best, mod, mod2, mod3)
+  }
 }
 
 
 
 # Plotting - just change the ending of the file name and rerun line with a few different species
-#p <- stack("models/predictions/Primula_scandinavica_bcm.img")
+#p <- stack("shiny/predictions/Carex_bicolor_bcm.img")
+#p <- p > -Inf
 #plot(p)
 #rm(p)
 
 
 
-# END #### -----------------------------------------------------------------------------
-# The stuff below is just for future reference
+
 
 
 # Let's bring the models back in to the environment. They're 3-20 20 MB each on file, or 17-55 when unzipped in the environment.

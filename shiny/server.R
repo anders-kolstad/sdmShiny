@@ -1,17 +1,42 @@
 # Run setwd to test locally, but don't include in server version
 #setwd("shiny/")
 
+#TOP ####
 
 library(shiny)
 library(sdm)
+library(sp)
+library(raster)
+library(dismo)
+#library(gbm)
+#library(tree)
+#library(mda)
+library(class)
+library(mgcv)
+library(nlme)
+#library(glmnet)
+library(Matrix)
+library(earth)
+library(Formula)
+library(plotrix)
+#library(TeachingDemos)
+library(rJava)
+#library(RSNNS)
+library(Rcpp)
+#library(randomForest)
+#library(rpart)
+#library(kernlab)
 library(rasterVis)
 library(gridExtra)
 library(rgdal)
+library(shinyjs)
+library(lattice)
+library(latticeExtra)
+library(shiny.i18n)
+library(ggplot2)
 
 
-#library(raster)
-#library(grDevices)
-#library(dismo)
+
 
 # Independenet variables
 IV <- raster::stack("IVapp.grd")
@@ -25,15 +50,78 @@ cols2 <- colorRampPalette(c("red", "white", "darkgreen" ))
 shinyServer(
   function(input, output) {
     
+    # ConditionalPanel Outputs
+    
+    output$cond1 <- renderText({
+        con <- data.frame(c1 = as.character(NA), c2 = as.character(NA))
+        ss <- input$species
+        ss2 <- sub(' ', '_', ss)
+      # Get model object to know what IVs to include as sliders
+        m       <- read.sdm(paste0("sdmModels/", ss2, "_3gams.sdm"))
+      if('TundraHerbivores' %in% names(m@data@features)){print("yes")}
+    })
+    output$cond2 <- renderText({
+      con <- data.frame(c1 = as.character(NA), c2 = as.character(NA))
+      ss <- input$species
+      ss2 <- sub(' ', '_', ss)
+      # Get model object to know what IVs to include as sliders
+      m       <- read.sdm(paste0("sdmModels/", ss2, "_3gams.sdm"))
+      if('moose1999' %in% names(m@data@features)){print("yes")}
+    })
+    
+    
+    
+    # translated ui ####
+    isolate(
+    output$contr <- renderUI({
+      i18n$set_translation_language(input$lan)
+      
+     
+      box(title = "Controls",
+          shinyjs::useShinyjs(),
+          id = "side-panel",
+          sliderInput("temperature", 
+                      label = i18n$t("Change in mean summer temperature (\u00B0C)"),
+                      min = -5, max = 5, value = c(0)),
+          sliderInput("precipitation", 
+                      label = i18n$t("Change in annual precipitation (%):"),
+                      min = -50, max = 50, value = c(0)),
+          
+         
+          conditionalPanel(
+            condition = "output.cond1 == 'yes'",
+          sliderInput("herbivory", 
+                      label = i18n$t("Change in sheep and reindeer density (%):"),
+                      min = -50, max = 50, value = c(0))),
+          
+          
+          conditionalPanel(
+            condition = "output.cond2 == 'yes'",
+            sliderInput("moose", 
+                        label = i18n$t("Change in moose density (%):"),
+                        min = -50, max = 50, value = c(0)),
+            sliderInput("deer", 
+                        label = i18n$t("Change in red deer density (%):"),
+                        min = -50, max = 50, value = c(0))),
+          
+          
+          actionButton("reset_input", i18n$t("Reset inputs"))
+      ) 
+    } )
+    )
+    
+  
+    
+    
     # PLOTS ####
     output$map <- renderPlot({
    
       #modify IVs
       #with selectable parameters
         IV2                  <- IV
-        IV2$TundraHerbivores <-IV2$TundraHerbivores * (input$herbivory/100 + 1)
-        IV2$temp             <-IV2$temp             + input$temperature         
-        IV2$prec             <-IV2$prec             * (input$precipitation/100+1)
+        IV2$TundraHerbivores <- IV2$TundraHerbivores * (input$herbivory/100 + 1)
+        IV2$temp             <- IV2$temp             + input$temperature         
+        IV2$prec             <- IV2$prec             * (input$precipitation/100+1)
 
         
         withProgress(message = 
@@ -44,19 +132,27 @@ shinyServer(
         ss2 <- sub(' ', '_', ss)
 
       # Predictions
-        # Get model object (best (out of 15) candidate model)
-        m       <- read.sdm(paste0("sdmModels/", ss2, "_bcm.sdm"))
+        # Get model object 
+        m       <- read.sdm(paste0("sdmModels/", ss2, "_3gams.sdm"))
         
       # -get img with predicted current habitat suitability
-        current <- stack(paste0("predictions/", ss2, "_bcm.img"))
+      # current <- stack(paste0("predictions/", ss2, "_bcm.img"))
         
-      # -make new predictions based o user input
+        current <- predict(m, IV,
+                           filename = "predictions/current.img",
+                           overwrite=TRUE,
+                           mean=TRUE)
+        
+      # -make new predictions based on user input
+        
+        # OBS add moose, deer etc....
         if(input$herbivory == 0 & input$temperature == 0 & input$precipitation == 0){
           pred <- current
         } else{
-          pred    <- predict(m, IV2, mean=TRUE,
-                             filename = "predictions/app/predicted.img",
-                             overwrite=TRUE)
+          pred    <- predict(m, IV2,
+                             filename = "predictions/pred.img",
+                             overwrite=TRUE,
+                             mean=TRUE)
         }
         diff <- pred-current
         
@@ -85,20 +181,36 @@ shinyServer(
     
     
     # Response curves ####
-   
-    output$rcurves <- renderImage({
-      ss <- input$species
-      ss2 <- sub(' ', '_', ss)
-      outfile1 <- paste0("models/rcurves/", ss2, "_rcurves.png")
+     output$rcurves <- renderPlot({
+       
+       
+       ss2     <- sub(' ', '_', input$species)
+       # Get model object 
+       m       <- read.sdm(paste0("sdmModels/", ss2, "_3gams.sdm"))
+       p       <- sdm::rcurve(m, ylab="Habitategnethet\nHabitat suitability", 
+                        xlab = "",
+                        main = "")
+       # not sure how to rename the variables:
+       #labs <- c("Temperature", "Precipitation", 
+       #           "Soil pH", "Sheep and reindeer")
+       # p2 <- p + facet_grid(labeller = labeller(variable = labs))
       
-      list(src = outfile1,
-           contentType = 'image/png',
-           width = 800,
-           height = 600,
-           alt = "Responce curves")
-      
-      
-    }, deleteFile = FALSE) #renderImage
+       print(p)
+       
+     })
+#    output$rcurves <- renderImage({
+#      ss <- input$species
+#      ss2 <- sub(' ', '_', ss)
+#      outfile1 <- paste0("models/rcurves/", ss2, "_rcurves.png")
+#      
+#      list(src = outfile1,
+#           contentType = 'image/png',
+#           width = 800,
+#           height = 600,
+#           alt = "Responce curves")
+#      
+#      
+#    }, deleteFile = FALSE) #renderImage
     
   
     # Variable importance ####
@@ -106,14 +218,14 @@ shinyServer(
     output$varimp <- renderImage({
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
-      outfile2 <- paste0("models/varimp/", ss2, ".png")
-      # here we can generate on the fly perhaps.
+      outfile2 <- paste0("varimp/", ss2, ".png")
+      
       
       
       list(src = outfile2,
            contentType = 'image/png',
-           width = 800,
-           height = 600,
+           width = 400,
+           height = 400,
            alt = "Variable importance")
       
       
@@ -122,7 +234,7 @@ shinyServer(
     
     output$varimptext <- renderText({
       ss <- input$species
-      paste("This figure shows which variables are most important, according to this mode, in determening the distribution of", ss)
+      paste("This figure shows which variables are most important, according to this model, in determening the distribution of", ss)
     })  # renderText
     
     
@@ -132,7 +244,8 @@ shinyServer(
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
       fn <- list.files("www/", pattern = ss2)
-      outfile3 <- paste0("www/", fn)
+      
+      ifelse(length(fn)>0, outfile3 <- paste0("www/", fn), outfile3 <- "www/example.png")
       
       list(src = outfile3,
            contentType = 'image/png',
@@ -147,14 +260,24 @@ shinyServer(
       ss <- input$species
       ss2 <- sub(' ', '_', ss)
       fn <- list.files("www/", pattern = ss2)
+      if(length(fn)>0){
       creds <- stringr::str_split(fn, "-")[[1]]
       creds <- stringr::str_split(creds[2], "\\.")[[1]]
       creds2 <- stringr::str_split(creds[1], "\\|")[[1]]
-      
       print(paste("Photo credits:", paste(creds2, collapse = " ")))
+      } else{
+        print("There is no picture for this species. Enjoy this view over Muddus National Park instead")
+      }
+      
+      
       
       
     })  # renderText
+    
+    
+    
+    
+    
     
     
     # Help ####
@@ -175,6 +298,8 @@ Start by selecting a species in the dropdown meny in the left. These are (curren
     observeEvent(input$reset_input, {
       shinyjs::reset("side-panel")
     })
+    outputOptions(output, "cond2", suspendWhenHidden = FALSE)
+    outputOptions(output, "cond1", suspendWhenHidden = FALSE)
     
           }) # app
 

@@ -13,3 +13,4 @@ quick_start.R
 test.R
 models/predictions/app/
 rsconnect/
+models/sdmModels/old/

@@ -1,0 +1,41 @@
+
+{
+  "cultural_date_format": "%d-%m-%Y",
+  "languages": ["en", "no"],
+  "translation": [
+      {"en": "Interactive distribution modelling", "no": "Interaktiv modellering av habitat-egnethet"},
+      
+      {"en": "Explore effects of changing climate and herbivore densities on distribution of rare plant species.", 
+      "no": "Se hvordan den potensielle utbredelsen til sjeldne planter flytter seg når du endrer på klima og beitetrykket"},
+      
+      {"en": "temperature",
+        "no": "temperatur"},
+        
+        {"en": "Change in mean summer temperature (\u00B0C)",
+        "no": "Endring i gjennomsnittlig sommertemperatur (\u00B0C)"},
+        
+        
+        {"en": "Change in sheep and reindeer density (%):",
+        "no": "Endring i tetthet av sau og reinsdyr"},
+        
+        {"en": "Change in annual precipitation (%):",
+        "no": "Endring i årlig nedbørsmengde (%)"},
+        
+        {"en": "Reset inputs",
+        "no": "Sett til null"},
+        
+        {"en": " Change in moose density (%):",
+        "no": "Endring i tetthet av elg"},
+        
+        {"en": "Change in red deer density (%):",
+        "no": "Endring i tetthet av hjort"}
+        
+       
+        
+       
+        
+        
+
+      
+    ]
+}
