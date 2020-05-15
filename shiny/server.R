@@ -77,24 +77,25 @@ shinyServer(
       i18n$set_translation_language(input$lan)
       
      
-      box(title = "Controls",
-          shinyjs::useShinyjs(),
-          id = "side-panel",
+      box(
+        shinyjs::useShinyjs(),
+        id = "side-panel",
+        title = "Controls", 
+        status = "primary", 
+        solidHeader = TRUE,
+          "Make changes to the below climate variables and herbivore densities and see how that affects the habitat suitability of your selected species",
+          
           sliderInput("temperature", 
                       label = i18n$t("Change in mean summer temperature (\u00B0C)"),
                       min = -5, max = 5, value = c(0)),
           sliderInput("precipitation", 
                       label = i18n$t("Change in annual precipitation (%):"),
                       min = -50, max = 50, value = c(0)),
-          
-         
           conditionalPanel(
             condition = "output.cond1 == 'yes'",
           sliderInput("herbivory", 
                       label = i18n$t("Change in sheep and reindeer density (%):"),
                       min = -50, max = 50, value = c(0))),
-          
-          
           conditionalPanel(
             condition = "output.cond2 == 'yes'",
             sliderInput("moose", 
@@ -103,8 +104,6 @@ shinyServer(
             sliderInput("deer", 
                         label = i18n$t("Change in red deer density (%):"),
                         min = -50, max = 50, value = c(0))),
-          
-          
           actionButton("reset_input", i18n$t("Reset inputs"))
       ) 
     } )
@@ -249,8 +248,8 @@ shinyServer(
       
       list(src = outfile3,
            contentType = 'image/png',
-           width = 400,
-           height = 300,
+           width = 300,
+           #height = 'auto',
            alt = fn)
       
       
@@ -276,7 +275,19 @@ shinyServer(
     
     
     
-    
+    # AUC ####
+    output$AUC <- renderInfoBox({
+      ss <- input$species
+      ss2 <- sub(' ', '_', ss)
+      m       <- read.sdm(paste0("sdmModels/", ss2, "_3gams.sdm"))
+      
+      valueBox(
+        "AUC", 
+          print(mean(getEvaluation(m)[,2], na.rm=T)), 
+          icon = icon("list"),
+          color = "purple"
+      )
+    })
     
     
     

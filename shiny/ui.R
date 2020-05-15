@@ -34,27 +34,40 @@ dashboardPage(
                  )),
   dashboardBody(
     fluidRow(
-      box(plotOutput("map")),
-      uiOutput("contr")
-      
+      box(width = 8,
+          plotOutput("map"),
+          valueBoxOutput("AUC"),
+          valueBox("Method:", "GAM",
+                         icon = icon("list"),
+                         color = "aqua"),
+           valueBox("N =", "???",
+                         icon = icon("list"),
+                         color = "lime")),
+      box(width = 4,
+      uiOutput("contr"))
     ),
+      
+    
     
     fluidRow(
-      box(
+      box(width = 4,
         imageOutput("pic"),
         textOutput("credits")
       ),
-      box(
-        textOutput("varimptext"),
-        imageOutput("varimp")
-      ),
-      box(
-        imageOutput("rcurves")
+      tabBox(width = 8, id = 'tabset1', selected = "Variable importance",
+             tabPanel("Variable importance",
+                      imageOutput("varimp"),
+                      textOutput("varimptext")),
+             tabPanel("Response curves",
+                      imageOutput("rcurves"))
+            
       )
+     
     )
   )
   
 )
+
   
 #  sidebarLayout(
 #    sidebarPanel(
