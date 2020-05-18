@@ -1,8 +1,8 @@
 
 -   [sdmShiny](#sdmshiny)
+    -   [Shiny application](#shiny-application)
+-   [Project homepage](#project-homepage)
     -   [Installation](#installation)
-    -   [Example application](#example-application)
--   [Documentation](#documentation)
 -   [About the repo](#about-the-repo)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -15,25 +15,23 @@ Last update:
 
 ``` r
 Sys.time()
-#> [1] "2020-05-01 09:28:52 CEST"
+#> [1] "2020-05-18 14:29:48 CEST"
 ```
 
-Please see the [project homepage](https://anders-kolstad.github.io/sdmShiny/) for a full documentation and demonstration of the sdmShiny project.
+Shiny application
+-----------------
+
+Follow this link: <https://anderskolstad.shinyapps.io/sdmShiny/>
+
+Project homepage
+================
+
+All the documentation for this project is found on [this webpage](https://anders-kolstad.github.io/sdmShiny/).
 
 Installation
 ------------
 
 Developers should clone the repo and work from there.
-
-Example application
--------------------
-
-Follow this link <https://anderskolstad.shinyapps.io/demoSDM/>
-
-Documentation
-=============
-
-All the documentation for this project is found on [this webpage](https://anders-kolstad.github.io/sdmShiny/).
 
 About the repo
 ==============

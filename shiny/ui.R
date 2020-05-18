@@ -62,36 +62,31 @@ dashboardPage(
     fluidRow(width=12, uiOutput("top")),
     
     fluidRow(
-      box(width = 8, height = 650,
+      tags$style(type="text/css",
+                 ".shiny-output-error { visibility: hidden; }",
+                 ".shiny-output-error:before { visibility: hidden; }"),
+      column(width = 8,
+        box(width = NULL, 
           plotOutput("map")),
-          
-      box(width = 4, height = 650,
-      uiOutput("contr"))
-    ),
+        tabBox(width = NULL, id = 'tabset1', selected = "Variable importance", #height = 600,
+               tabPanel("Variable importance",
+                        plotOutput("varimp"),
+                        textOutput("varimptext")),
+               tabPanel("Response curves",
+                        imageOutput("rcurves")))),
+      column( width = 4,
+        box(width = NULL,
+         uiOutput("contr")),
+        box(width = NULL, align = "center", 
+            imageOutput("pic"))
+             )),   # end of row
       
-    
-    
     fluidRow(
-      box(width = 4, align = "center", height = 600,
-        imageOutput("pic")
-              ),
-      tabBox(width = 8, id = 'tabset1', selected = "Variable importance", height = 600,
-             tabPanel("Variable importance",
-                      plotOutput("varimp"),
-                      textOutput("varimptext")),
-             tabPanel("Response curves",
-                      imageOutput("rcurves"))
-            
-      )
-    ),
-    
-# Photo credits ####
-  fluidRow(
-             uiOutput("credUI"),
-             uiOutput("usUI"),
-             uiOutput("dissclaimer"),
-             uiOutput("refs"))
-
+      uiOutput("usUI"),
+      uiOutput("dissclaimer"),
+      uiOutput("refs"),
+      uiOutput("credUI")
+      ) # end of row
 
   ) # Body
 ) # Page

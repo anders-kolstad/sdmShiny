@@ -14,3 +14,4 @@ test.R
 models/predictions/app/
 rsconnect/
 models/sdmModels/old/
+shiny/predictions/

@@ -10,15 +10,18 @@
       {"en": "temperature",
         "no": "temperatur"},
         
-        {"en": "Mean summer temperature (\u00B0C)",
-        "no": "Gjennomsnittlig sommertemperatur (\u00B0C)"},
+        {"en": "Mean summer temperature (\u00B0C):",
+        "no": "Gjennomsnittlig sommertemperatur (\u00B0C):"},
         
-        
-        {"en": "Sheep and reindeer density (%):",
-        "no": "Tetthet av sau og reinsdyr (%)"},
+           
+        {"en": "Soil pH (in pH units):",
+        "no": "pH i jorden (i pH-enheter"},
         
         {"en": "Annual precipitation (%):",
         "no": "Årlig nedbørsmengde (%)"},
+        
+        {"en": "Sheep and reindeer density (%):",
+        "no": "Tetthet av sau og reinsdyr (%)"},
         
         {"en": "Reset inputs",
         "no": "Sett til null"},
@@ -44,16 +47,39 @@
         "no": "Modellene som presenteres her er nødvendigvis forenkede modeller og ikk enødvendigvis veldig presise. Se følgende publiserte artikkler for mer presise prediksjoner:"},
         
         {"en": "References",
-        "no": "Referanser"}
+        "no": "Referanser"},
         
         
+         {"en": "Variable importance",
+        "no": "Variabelviktigheten"},
         
+           {"en": "Annual precipitation",
+        "no": "Årlig nedbørsmengde"},
         
+        {"en": "Soil pH",
+        "no": "pH i jorden"},
+     
         
-       
+        {"en": "Mean summer temperature",
+        "no": "Gjennomsnittlig sommertemperatur"},
         
-       
+        {"en": "Sheep and reindeer density",
+        "no": "Tetthet av sau og reinsdyr"},
         
+        {"en": "Moose density",
+        "no": "Tetthet av elg"},
+        
+        {"en": "Red deer density",
+        "no": "Tetthet av hjort"},
+        
+        {"en": "Roe deer density",
+        "no": "Tetthet av rådyr"},
+        
+        {"en": "This figure shows which variables are most important, according to this model, in determening the distribution of the selected species",
+        "no": "Denne figuren viser hvilke variabler som, i følge denne modellen, er de viktigste i å forklare utbredelsen til den valgte arten"},
+        
+        {"en": "There is no picture for this species. Enjoy this view over Muddus National Park instead",
+        "no": "Vi har ikke noe bilde av denne arten. Se på dette bilde av Muddus Nationalpark i stedet."}
         
 
       

@@ -246,6 +246,13 @@ rm(cats, IV, NorClimElev, Norclimdat, Norbioclim2, Norbioclim, Norbioclim1, NorC
 names(myIVs)
 ```
 
+For the shiny app we want to have a lower resolution, and also we are dropping the categorical variables
+```{r, eval = FALSE}
+myIVs <- stack(myIVs$SoilpH, myIVs$moose1999, myIVs$red_deer1999, myIVs$roe_deer1999,
+               myIVs$TundraHerbivores, myIVs$temp, myIVs$prec, myIVs$elev)
+myIVs <- raster::aggregate(myIVs, fact = 10) # resulting in 10*10 km
+#writeRaster(myIVs, 'shiny/IVapp', overwrite=TRUE) # 570 mb
+```
 
 ## Ratify
 So now I can ratify.

@@ -257,7 +257,7 @@ div.tocify {
 <h2>Documentation: Setting up the IVs</h2>
 <p>Last update:</p>
 <pre class="r"><code>Sys.time()</code></pre>
-<pre><code>## [1] &quot;2020-05-01 08:52:57 CEST&quot;</code></pre>
+<pre><code>## [1] &quot;2020-05-18 14:06:01 CEST&quot;</code></pre>
 <div id="overview" class="section level3">
 <h3>Overview</h3>
 <p>The alpine red-listed species paper used the following IVs, in the approximate order of importance:</p>
@@ -447,6 +447,11 @@ names(myIVs)</code></pre>
 ##  [4] &quot;SoilpH&quot;              &quot;moose1999&quot;           &quot;red_deer1999&quot;       
 ##  [7] &quot;roe_deer1999&quot;        &quot;TundraHerbivores&quot;    &quot;temp&quot;               
 ## [10] &quot;prec&quot;                &quot;elev&quot;</code></pre>
+<p>For the shiny app we want to have a lower resolution, and also we are dropping the categorical variables</p>
+<pre class="r"><code>myIVs &lt;- stack(myIVs$SoilpH, myIVs$moose1999, myIVs$red_deer1999, myIVs$roe_deer1999,
+               myIVs$TundraHerbivores, myIVs$temp, myIVs$prec, myIVs$elev)
+myIVs &lt;- raster::aggregate(myIVs, fact = 10) # resulting in 10*10 km
+#writeRaster(myIVs, 'shiny/IVapp', overwrite=TRUE) # 570 mb</code></pre>
 </div>
 <div id="ratify" class="section level2">
 <h2>Ratify</h2>
