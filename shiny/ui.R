@@ -22,7 +22,29 @@ myS3 <- unique(as.character(myS2))
 
 
 dashboardPage(
-  dashboardHeader(title = i18n$t("Interactive distribution modelling")),
+  
+# HEADER ####
+  dashboardHeader(title = i18n$t("Interactive distribution modelling"),
+                  
+                  titleWidth = 450,
+                  
+                  dropdownMenu(type = "messages",
+                  messageItem(
+                    from = "AUC",
+                    message = textOutput("AUC"),
+                    icon("bullseye")),
+                  messageItem(
+                    from = "Method",
+                    message = "GAM",
+                    icon("bullseye")),
+                  messageItem(
+                    from = "# unique samples",
+                    message = textOutput("n"),
+                    icon("bullseye"))
+                  )
+  ),
+              
+# SIDEBAR ####    
   dashboardSidebar(
     radioButtons("lan", "Choose language:",
                               c("English" = "en",
@@ -32,96 +54,46 @@ dashboardPage(
                  choiceNames = myS3,
                  choiceValues = myS3
                  )),
+  
+  
+  # BODY ####
   dashboardBody(
+    tags$head(tags$style(HTML(".grViz { width:100%!important;}"))),
+    fluidRow(width=12, uiOutput("top")),
+    
     fluidRow(
-      box(width = 8,
-          plotOutput("map"),
-          valueBoxOutput("AUC"),
-          valueBox("Method:", "GAM",
-                         icon = icon("list"),
-                         color = "aqua"),
-           valueBox("N =", "???",
-                         icon = icon("list"),
-                         color = "lime")),
-      box(width = 4,
+      box(width = 8, height = 650,
+          plotOutput("map")),
+          
+      box(width = 4, height = 650,
       uiOutput("contr"))
     ),
       
     
     
     fluidRow(
-      box(width = 4,
-        imageOutput("pic"),
-        textOutput("credits")
-      ),
-      tabBox(width = 8, id = 'tabset1', selected = "Variable importance",
+      box(width = 4, align = "center", height = 600,
+        imageOutput("pic")
+              ),
+      tabBox(width = 8, id = 'tabset1', selected = "Variable importance", height = 600,
              tabPanel("Variable importance",
-                      imageOutput("varimp"),
+                      plotOutput("varimp"),
                       textOutput("varimptext")),
              tabPanel("Response curves",
                       imageOutput("rcurves"))
             
       )
-     
-    )
-  )
-  
-)
+    ),
+    
+# Photo credits ####
+  fluidRow(
+             uiOutput("credUI"),
+             uiOutput("usUI"),
+             uiOutput("dissclaimer"),
+             uiOutput("refs"))
+
+
+  ) # Body
+) # Page
 
   
-#  sidebarLayout(
-#    sidebarPanel(
-#      shinyjs::useShinyjs(),
-#      id = "side-panel",
-#      
-#      
-#      #radioButtons("lan", "Choose language:",
-#      #             c("English" = "en",
-#      #               "Norsk" = "no")),
-#      
-#      helpText(i18n$t("Explore effects of changing climate and herbivore densities on distribution of rare plant species.")),
-#      
-#      
-#      # Possible improvement: https://shiny.rstudio.com/articles/selectize.html
-#      selectInput("species", 
-#                  label = "Choose a species to display",
-#                  choices = myS3, 
-#                  selected = myS3[1]),
-#      
-#      #selectInput("modelling approach", 
-#      #            label = "Choose modelling approach",
-#      #            choices = c("Ensemble","Replicated maxent (n=5)", "Best candidate model"),
-#      #            selected = "Ensemble"),
-#      
-#      sliderInput("temperature", 
-#                  label = "Change in mean summer temperature (\u00B0C)",
-#                  min = -5, max = 5, value = c(0)),
-#      
-#      sliderInput("herbivory", 
-#                  label = "Change in sheep and reindeer density (%):",
-#                  min = -50, max = 50, value = c(0)),
-#      
-#      sliderInput("precipitation", 
-#                  label = "Change in annual precipitation (%):",
-#                  min = -50, max = 50, value = c(0)),
-#      
-#      actionButton("reset_input", "Reset inputs")
-#    ) ,
-#    
-#    mainPanel(
-#      tabsetPanel(
-#        tabPanel("Plots", 
-#                 plotOutput("map"),
-#                 imageOutput("pic"),
-#                 textOutput("credits")), 
-#        tabPanel("Variable importance", 
-#                 textOutput("varimptext"),
-#                 imageOutput("varimp")), 
-#        tabPanel("Response curves", imageOutput("rcurves")),
-#        tabPanel("Help", 
-#                 textOutput("help"),
-#                 tags$style(type="text/css", "#help {white-space: pre-wrap;}")
-#        )
-#      ))
-#    
-#  )))

@@ -11,8 +11,10 @@ library(sdm)
 source("./R/spList.R")
 myIVs      <- raster::stack('data/IV.grd')
 # removing categorical layers - they dont add much and cause trouble with NAs
-myIVs <- stack(myIVs$SoilpH, myIVs$moose1999, myIVs$red_deer1999, myIVs$roe_deer1999,
-               myIVs$TundraHerbivores, myIVs$temp, myIVs$prec, myIVs$elev)
+myIVs <- raster::stack(myIVs$SoilpH, myIVs$moose1999, 
+                       myIVs$red_deer1999, myIVs$roe_deer1999,
+                        myIVs$TundraHerbivores, myIVs$temp, myIVs$prec, myIVs$elev)
+names(myIVs)
 #oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
 # oDat       <- readRDS('data/allOccurences.RData') # All species
 dim(oDat)
@@ -183,9 +185,28 @@ mySpecies <- unique(as.character(myS2))
 length(mySpecies) # 85
 
 
+# get a list of the species we have sdmModel objects for
+myS <- list.files("shiny/sdmModels/", pattern = ".sdm")
+myS2 <- as.list(NA)
+for(i in 1:length(myS)){
+  myS2[i] <- 
+    paste(
+      stringr::str_split(myS[i], "_")[[1]][1],
+      stringr::str_split(myS[i], "_")[[1]][2],
+      collapse = "_",
+      sep="_")
+}
+mySpeciesM <- unique(as.character(myS2))
+length(mySpeciesM) # 
+
+
 # GAM ####
 # There is  compromise between model accuracy and model object file size (need to be low to allow many species in the shinyapps bundle), I have ended up using a single method (gam, one of the most successful in trils) with 5 replicates (because gams sometimes fail, and varImp variesa lot between runs). They should  differ more when the number of observations is very low because then you could get 'unlucky' with the partitioning. 
-
+mySpecies2 <- mySpecies[!mySpecies %in% mySpeciesM]
+length(mySpecies2) # 85
+mySpecies <- mySpecies2
+mySpecies <- mySpecies[1:10]
+# Aphanes_australis is extremly rare
 for(i in 1:length(mySpecies)){
   
   s       <- mySpecies[i]

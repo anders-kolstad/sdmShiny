@@ -5,30 +5,50 @@
   "translation": [
       {"en": "Interactive distribution modelling", "no": "Interaktiv modellering av habitat-egnethet"},
       
-      {"en": "Explore effects of changing climate and herbivore densities on distribution of rare plant species.", 
-      "no": "Se hvordan den potensielle utbredelsen til sjeldne planter flytter seg når du endrer på klima og beitetrykket"},
+      {"en": "Make changes to the climate and herbivore density variables to the right and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' at the bottom right of the page to see which variables are having the biggest effect for this species.",  "no": "Endre på klima- og beitetrykk i kontollpanelet til høyre og se hvordan dette påvirker habitat-egnetheten til den planten du har valgt. Du kan se på 'variabelviktigheten' ned til høyre på siden for å se hvilke variables som har størst effect for denne arten."},
       
       {"en": "temperature",
         "no": "temperatur"},
         
-        {"en": "Change in mean summer temperature (\u00B0C)",
-        "no": "Endring i gjennomsnittlig sommertemperatur (\u00B0C)"},
+        {"en": "Mean summer temperature (\u00B0C)",
+        "no": "Gjennomsnittlig sommertemperatur (\u00B0C)"},
         
         
-        {"en": "Change in sheep and reindeer density (%):",
-        "no": "Endring i tetthet av sau og reinsdyr"},
+        {"en": "Sheep and reindeer density (%):",
+        "no": "Tetthet av sau og reinsdyr (%)"},
         
-        {"en": "Change in annual precipitation (%):",
-        "no": "Endring i årlig nedbørsmengde (%)"},
+        {"en": "Annual precipitation (%):",
+        "no": "Årlig nedbørsmengde (%)"},
         
         {"en": "Reset inputs",
         "no": "Sett til null"},
         
-        {"en": " Change in moose density (%):",
-        "no": "Endring i tetthet av elg"},
+        {"en": "Moose density (%):",
+        "no": "Tetthet av elg"},
         
-        {"en": "Change in red deer density (%):",
-        "no": "Endring i tetthet av hjort"}
+        {"en": "Red deer density (%):",
+        "no": "Tetthet av hjort"},
+        
+         {"en": "Roe deer density (%):",
+        "no": "Tetthet av rådyr"},
+        
+        
+        {"en": "Controls",
+        "no": "Kontrollpanel"},
+        
+        
+        {"en": "This Shyny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway",
+        "no": "Denne Shiny-applikasjonen er laget av Anders Lorentzen Kolstad og James D. M. Speed ved NTNU Vitenskapsmuseet, Trondheim."},
+        
+        {"en": "The habitat suitability models presented here have had to be made quite simple and are therefore not the most accurate. See the following  published papers for more precise predictions:",
+        "no": "Modellene som presenteres her er nødvendigvis forenkede modeller og ikk enødvendigvis veldig presise. Se følgende publiserte artikkler for mer presise prediksjoner:"},
+        
+        {"en": "References",
+        "no": "Referanser"}
+        
+        
+        
+        
         
        
         
