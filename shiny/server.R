@@ -25,12 +25,39 @@ library(lattice)
 library(latticeExtra)
 library(shiny.i18n)
 library(ggplot2)
+library(readr)
+library(mapview)
 
+# Get species list ####
+myS <- list.files("sdmModels/", pattern = ".sdm")
+myS2 <- as.list(NA)
+for(i in 1:length(myS)){
+  myS2[i] <- 
+    paste(
+      stringr::str_split(myS[i], "_")[[1]][1],
+      stringr::str_split(myS[i], "_")[[1]][2],
+      collapse = " ")
+}
+myS3x <- unique(as.character(myS2))
+# Get norwegian names
+namelist <- readr::read_delim("Artsnavnebase_fork.csv", 
+                       "\t", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"),
+                       trim_ws = TRUE)
+namelist$sp <- paste(namelist$Slekt, namelist$Art)
+namelist <- namelist[!duplicated(namelist$sp),]  # 13.5k names
+myS3 <- data.frame(myS3 = myS3x)
+for(i in 1:nrow(myS3)){
+  myS3[i,2] <-  namelist$PopulærnavnBokmål[grep(myS3x[i], namelist$sp, fixed = TRUE)]
+}
 
-
-
+sci <- as.character(myS3$myS3)
+com <- as.character(myS3$V2)
+rm(myS2, namelist, myS, myS3x, myS3)
 # IVs ####
 IV <- raster::stack("IVapp.grd")
+
+# Occurences
+occ <- readRDS("allOccurences.RData")
 
 # Colours  ####
 cols <- colorRampPalette(c("beige", "darkgreen" ))
@@ -41,6 +68,37 @@ cols2 <- colorRampPalette(c("red", "white", "darkgreen" ))
 shinyServer(
   function(input, output, session) {
     
+    # translated ui ####
+    
+    output$spLanguage <- renderUI({
+    i18n$set_translation_language(input$lan)
+      norVal <- c("Vitenskapelige navn", "Norske navn")
+      engVal <- c("Scientific names", "Norwegian names")
+      vals <- switch(input$lan,
+                     "en" = engVal,
+                     "no" = norVal)
+    radioButtons("spLang",
+                 i18n$t("Show species by:"),
+                 choiceNames = vals,
+                 choiceValues = c("sci", "com"))
+    })
+    
+    
+    # select species
+    output$spNames <- renderUI({
+      i18n$set_translation_language(input$lan)
+      
+      whatNames <- switch(input$spLang,
+                          "sci" = sci,
+                          "com" = com,
+                          sci)
+      radioButtons("species",
+                   i18n$t("Pick a species"),
+                   choiceNames = whatNames,
+                   choiceValues = sci)
+    })
+    
+    
     # prepare species name ####
   theName <- reactive({
       myName <- sub(' ', '_', input$species)
@@ -50,7 +108,7 @@ shinyServer(
     # Get model ####
   theMod <- reactive({
       myName <- theName()
-      m       <- read.sdm(paste0("sdmModels/", myName, "_3gams.sdm"))
+      m       <- sdm::read.sdm(paste0("sdmModels/", myName, "_3gams.sdm"))
       return(m)
     })
 
@@ -85,7 +143,8 @@ shinyServer(
     
     
     
-# translated ui ####
+
+    
     isolate(
     output$contr <- renderUI({
       i18n$set_translation_language(input$lan)
@@ -131,6 +190,11 @@ shinyServer(
     )
     
     
+    output$myTitle <- renderText({
+      i18n$set_translation_language(input$lan)
+      i18n$t("Interactive distribution modelling")
+      })
+    
 # Top banner ####    
     output$top <- renderUI({
       i18n$set_translation_language(input$lan)
@@ -156,26 +220,22 @@ shinyServer(
     output$credUI <- renderUI({
       i18n$set_translation_language(input$lan)
       box(
-        width = 2, height = 200, background = "aqua",
+        width = NULL,  #background = "aqua",
         i18n$t("Photo credits:"),
         textOutput("credits"))})
    
     output$usUI <- renderUI({
       i18n$set_translation_language(input$lan)
       box(
-        width = 4, height = 200, background = "aqua",
-        i18n$t("This Shyny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway"))})
+        width = NULL, #background = "aqua",
+        i18n$t("This Shiny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway. To see where the data comes from, please visit the"), 
+        a("project homepage.", href = "https://anders-kolstad.github.io/sdmShiny/"),
+        i18n$t("The habitat suitability models presented here have had to be made quite simple and are therefore not the most accurate. See the following  published papers for more precise predictions:"),
+        a("Paper 1", href = "https://www.sciencedirect.com/science/article/abs/pii/S0006320716309168")
+        )
+       })
     
-    output$dissclaimer <- renderUI({
-      i18n$set_translation_language(input$lan)
-      box(
-        width = 4, height = 200, background = "aqua",
-        i18n$t("The habitat suitability models presented here have had to be made quite simple and are therefore not the most accurate. See the following  published papers for more precise predictions:"))
-                     })
-    
-    output$refs <- renderUI({
-    box(i18n$t("References"),width = 2, height = 200, background = "aqua",
-        tags$a(href="https://www.sciencedirect.com/science/article/abs/pii/S0006320716309168", "Paper 1"))})
+  
     
     # Response curves ####
      output$rcurves <- renderPlot({
@@ -269,7 +329,7 @@ shinyServer(
     
     output$pic <- renderImage({
       myWidth  <- session$clientData$output_pic_width
-      height <- session$clientData$output_plot2_height
+      #height <- session$clientData$output_plot2_height
       
       
       fn <- list.files("www/", pattern = theName())
@@ -278,8 +338,8 @@ shinyServer(
        
       list(src = outfile3,
            contentType = 'image/png',
-           #width =   myWidth, 
-           height = 300,
+           width =   myWidth, 
+           height = 'auto',
            alt = fn)
  
     }, deleteFile = FALSE) #renderImage
@@ -306,9 +366,10 @@ shinyServer(
     # PLOTS ####
     
     current <- reactive({
+      i18n$set_translation_language(input$lan)
       
       m   <- theMod()
-      withProgress(message =   "Mapping current habitat suitability ... please wait" , value = 0, {
+      withProgress(message =   i18n$t("Mapping current habitat suitability ... please wait") , value = 0, {
       predict(m, IV,
                            filename = "predictions/current.img",
                            overwrite=TRUE,
@@ -319,6 +380,7 @@ shinyServer(
     
 
     output$map <- renderPlot({
+      i18n$set_translation_language(input$lan)
       
          # -make new predictions based on user input
          IV2                  <- IV2()
@@ -330,7 +392,7 @@ shinyServer(
            pred <- current()
          } else{
            withProgress(message = 
-    "Mapping predicted changes in habitat suitability ... please wait" , value = 0, {
+    i18n$t("Mapping predicted changes in habitat suitability ... please wait") , value = 0, {
                         pred    <- predict(m, IV2,
                                            filename = "predictions/pred.img",
                                            overwrite=TRUE,
@@ -340,27 +402,41 @@ shinyServer(
            diff <- pred-current()
            p1 <- rasterVis::levelplot(current(),
                                       margin=F,
-                                      main="Estimated current\nhabitat suitability",
+                                      main=i18n$t("Current\nhabitat suitability"),
                                       col.regions = cols,
                                       at=seq(0, 1,len=19),
                                       scales=list(draw=FALSE))
            p2 <- rasterVis::levelplot(diff,
                                       margin=F,
-                                      main="Predicted change in\nhabitat suitability",
+                                      main=i18n$t("Predicted change in\nhabitat suitability"),
                                       col.regions = cols2,
                                       at=seq(-1, 1,len=19),
                                       scales=list(draw=FALSE))
             
-           predp <- grid.arrange(p1, p2, ncol = 2, top = paste(input$species))   
+           myTitle <- paste( input$species, com[grep(input$species, sci, fixed = TRUE)], sep = " | " )
+           predp <- grid.arrange(p1, p2, ncol = 2, top = myTitle )   
             
            return(print(predp))
            
     }) #renderPlot    
   
-                       
-                    
-
- 
+    
+    
+    # Occurences ####
+    output$occurenceMap <- renderLeaflet({
+      dat <- occ[occ$species == theName(), ]
+      theMap <- mapview::mapview(dat,
+                                 layer.name = theName(),... = ...
+                       map.types = c("Esri.WorldShadedRelief",
+                                     "Esri.WorldImagery"),
+                       cex = 5, lwd = 0,
+                       alpha.regions = 0.5,
+                       col.regions = "blue")
+      theMap@map
+      
+    })
+    
+    
     
     observeEvent(input$reset_input, {
       shinyjs::reset("side-panel")

@@ -4,27 +4,16 @@
 library(shiny)
 library(shinyjs)
 library(shinydashboard)
+library(dashboardthemes)
+library(leaflet)
 
 
-# translations
-
-# Get species list ####
-myS <- list.files("sdmModels/", pattern = ".sdm")
-myS2 <- as.list(NA)
-for(i in 1:length(myS)){
-  myS2[i] <- 
-    paste(
-      stringr::str_split(myS[i], "_")[[1]][1],
-      stringr::str_split(myS[i], "_")[[1]][2],
-      collapse = " ")
-}
-myS3 <- unique(as.character(myS2))
-
+            
 
 dashboardPage(
   
 # HEADER ####
-  dashboardHeader(title = i18n$t("Interactive distribution modelling"),
+  dashboardHeader(title = textOutput('myTitle'),
                   
                   titleWidth = 450,
                   
@@ -45,19 +34,27 @@ dashboardPage(
   ),
               
 # SIDEBAR ####    
-  dashboardSidebar(
-    radioButtons("lan", "Choose language:",
-                              c("English" = "en",
-                                "Norsk" = "no")),
-    radioButtons("species",
-                 "Pick a species",
-                 choiceNames = myS3,
-                 choiceValues = myS3
-                 )),
+  dashboardSidebar( 
+    
+    radioButtons("lan", "",
+                 c("English" = "en",
+                   "Norsk" = "no")),
+    
+    uiOutput('spLanguage'),
+#    radioButtons("spLang",
+#                 "List species by:",
+#                 c("Scientific names" = "sci", "Norwegian names" = "com")
+#                      ),
+    uiOutput('spNames')
+    ), # end sidebar
   
   
   # BODY ####
   dashboardBody(
+    shinyDashboardThemes(
+      theme = "onenote"
+    ),
+    
     tags$head(tags$style(HTML(".grViz { width:100%!important;}"))),
     fluidRow(width=12, uiOutput("top")),
     
@@ -68,25 +65,26 @@ dashboardPage(
       column(width = 8,
         box(width = NULL, 
           plotOutput("map")),
-        tabBox(width = NULL, id = 'tabset1', selected = "Variable importance", #height = 600,
+        tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,
+               tabPanel("Records",
+                        leafletOutput('occurenceMap')),
                tabPanel("Variable importance",
                         plotOutput("varimp"),
                         textOutput("varimptext")),
                tabPanel("Response curves",
-                        imageOutput("rcurves")))),
+                        imageOutput("rcurves"))),
+               
+        uiOutput("usUI"),
+        uiOutput("credUI")
+                ),  # end of column
       column( width = 4,
         box(width = NULL,
          uiOutput("contr")),
-        box(width = NULL, align = "center", 
-            imageOutput("pic"))
-             )),   # end of row
+        #box(width = NULL, align = "center", height = 800,
+            imageOutput("pic")
+             ))   # end of row
       
-    fluidRow(
-      uiOutput("usUI"),
-      uiOutput("dissclaimer"),
-      uiOutput("refs"),
-      uiOutput("credUI")
-      ) # end of row
+    
 
   ) # Body
 ) # Page

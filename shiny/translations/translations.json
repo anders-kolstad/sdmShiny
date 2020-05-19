@@ -3,6 +3,8 @@
   "cultural_date_format": "%d-%m-%Y",
   "languages": ["en", "no"],
   "translation": [
+    
+    
       {"en": "Interactive distribution modelling", "no": "Interaktiv modellering av habitat-egnethet"},
       
       {"en": "Make changes to the climate and herbivore density variables to the right and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' at the bottom right of the page to see which variables are having the biggest effect for this species.",  "no": "Endre på klima- og beitetrykk i kontollpanelet til høyre og se hvordan dette påvirker habitat-egnetheten til den planten du har valgt. Du kan se på 'variabelviktigheten' ned til høyre på siden for å se hvilke variables som har størst effect for denne arten."},
@@ -15,7 +17,7 @@
         
            
         {"en": "Soil pH (in pH units):",
-        "no": "pH i jorden (i pH-enheter"},
+        "no": "pH i jorden (i pH-enheter)"},
         
         {"en": "Annual precipitation (%):",
         "no": "Årlig nedbørsmengde (%)"},
@@ -27,21 +29,21 @@
         "no": "Sett til null"},
         
         {"en": "Moose density (%):",
-        "no": "Tetthet av elg"},
+        "no": "Tetthet av elg (%)"},
         
         {"en": "Red deer density (%):",
-        "no": "Tetthet av hjort"},
+        "no": "Tetthet av hjort (%)"},
         
          {"en": "Roe deer density (%):",
-        "no": "Tetthet av rådyr"},
+        "no": "Tetthet av rådyr (%)"},
         
         
         {"en": "Controls",
         "no": "Kontrollpanel"},
         
         
-        {"en": "This Shyny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway. To see where the data comes from, please visit https://anders-kolstad.github.io/sdmShiny/",
-        "no": "Denne Shiny-applikasjonen er laget av Anders Lorentzen Kolstad og James D. M. Speed ved NTNU Vitenskapsmuseet, Trondheim. For å se hvor dataene kommer fra, vennlisgst gå til nettsiden https://anders-kolstad.github.io/sdmShiny/"},
+        {"en": "This Shiny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway. To see where the data comes from, please visit the",
+        "no": "Denne Shiny-applikasjonen er laget av Anders Lorentzen Kolstad og James D. M. Speed ved NTNU Vitenskapsmuseet, Trondheim. For å se hvor dataene kommer fra, vennlisgst gå til"},
         
         {"en": "The habitat suitability models presented here have had to be made quite simple and are therefore not the most accurate. See the following  published papers for more precise predictions:",
         "no": "Modellene som presenteres her er nødvendigvis forenkede modeller og ikk enødvendigvis veldig presise. Se følgende publiserte artikkler for mer presise prediksjoner:"},
@@ -49,6 +51,8 @@
         {"en": "References",
         "no": "Referanser"},
         
+        {"en": "Photo credits:",
+        "no": "Foto:"},
         
          {"en": "Variable importance",
         "no": "Variabelviktigheten"},
@@ -79,9 +83,36 @@
         "no": "Denne figuren viser hvilke variabler som, i følge denne modellen, er de viktigste i å forklare utbredelsen til den valgte arten"},
         
         {"en": "There is no picture for this species. Enjoy this view over Muddus National Park instead",
-        "no": "Vi har ikke noe bilde av denne arten. Se på dette bilde av Muddus Nationalpark i stedet."}
+        "no": "Vi har ikke noe bilde av denne arten. Se på dette bilde av Muddus Nationalpark i stedet."},
         
-
+        {"en": "Choose language:",
+        "no": "Velg språk:"},
+        
+        {"en": "Pick a species",
+        "no": "Velg en plante"},
+        
+        {"en": "Show species by:",
+        "no": "Vis artsliste med"},
+        
+        {"en": "Scientific names",
+        "no": "Vitenskapelige navn"},
+        
+        {"en": "Norwegian names",
+        "no": "Norske navn"},
+        
+        {"en": "Current\nhabitat suitability",
+        "no": "Habitat-egnetheten\nnåtid"},
+        
+        {"en": "Predicted change in\nhabitat suitability",
+        "no": "Modelerte endringer i\nhabitat-egnetheten"},
+        
+        {"en": "Mapping predicted changes in habitat suitability ... please wait",
+        "no": "Beregner endrigene i habitat-egnethet ut ifra dine valg... vennligst vent "},
+        {"en": "Mapping current habitat suitability ... please wait",
+        "no": "Beregner habitat-egnethet... vennligst vent"}
+        
+        
+        
       
     ]
 }
