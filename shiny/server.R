@@ -27,6 +27,7 @@ library(shiny.i18n)
 library(ggplot2)
 library(readr)
 library(mapview)
+library(leaflet)
 
 # Get species list ####
 myS <- list.files("sdmModels/", pattern = ".sdm")
@@ -426,7 +427,7 @@ shinyServer(
     output$occurenceMap <- renderLeaflet({
       dat <- occ[occ$species == theName(), ]
       theMap <- mapview::mapview(dat,
-                                 layer.name = theName(),... = ...
+                                 layer.name = theName(),
                        map.types = c("Esri.WorldShadedRelief",
                                      "Esri.WorldImagery"),
                        cex = 5, lwd = 0,
@@ -436,7 +437,28 @@ shinyServer(
       
     })
     
-    
+    # Plot IVs ####
+    output$temp <- renderPlot({
+      raster::plot(IV$temp, main = "Mean temperature of warmest quarter")
+    })
+    output$SoilpH <- renderPlot({
+      raster::plot(IV$SoilpH, main = "Soil pH at 5cm depth")
+    })
+    output$moose1999 <- renderPlot({
+      raster::plot(IV$moose1999, main = "Moose densities (metabolic biomass) in year 1999")
+    })
+    output$red_deer1999 <- renderPlot({
+      raster::plot(IV$red_deer1999, main = "Red deer densities (metabolic biomass) in year 1999")
+    })
+    output$roe_deer1999 <- renderPlot({
+      raster::plot(IV$roe_deer1999, main = "Roe deer densities (metabolic biomass) in year 1999")
+    })
+    output$TundraHerbivores <- renderPlot({
+      raster::plot(IV$TundraHerbivores, main = "Combined sheep and reindeer densities\n(metabolic biomass) in year 1999")
+    })
+    output$prec <- renderPlot({
+      raster::plot(IV$prec, main = "Annual precipitation (mm)")
+    })
     
     observeEvent(input$reset_input, {
       shinyjs::reset("side-panel")
@@ -444,6 +466,7 @@ shinyServer(
     outputOptions(output, "cond2", suspendWhenHidden = FALSE)
     outputOptions(output, "cond1", suspendWhenHidden = FALSE)
 
+    
     
           }) # app
 
