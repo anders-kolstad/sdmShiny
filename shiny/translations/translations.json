@@ -7,7 +7,7 @@
     
       {"en": "Interactive distribution modelling", "no": "Interaktiv modellering av habitat-egnethet"},
       
-      {"en": "Make changes to the climate and herbivore density variables to the right and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' at the bottom right of the page to see which variables are having the biggest effect for this species.",  "no": "Endre på klima- og beitetrykk i kontollpanelet til høyre og se hvordan dette påvirker habitat-egnetheten til den planten du har valgt. Du kan se på 'variabelviktigheten' ned til høyre på siden for å se hvilke variables som har størst effect for denne arten."},
+      {"en": "Make changes to the climate and herbivore density variables in the Control Panel and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' below to see which variables are having the biggest effect for this species. Start by playing around, or take 'the Challenge'.",  "no": "Endre på klima- og beitetrykk i kontollpanelet til høyre og se hvordan dette påvirker habitat-egnetheten til den planten du har valgt. Du finner en figur med 'variabelviktigheten' lengre ned på siden der du ser hvilke variables som har størst effekt for denne arten. Du kan leke fritt med kontrollene, eller du kan prøve deg på utfordringen som står under kartet."},
       
       {"en": "temperature",
         "no": "temperatur"},
@@ -38,7 +38,7 @@
         "no": "Tetthet av rådyr (%)"},
         
         
-        {"en": "Controls",
+        {"en": "Control Panel",
         "no": "Kontrollpanel"},
         
         
@@ -109,10 +109,30 @@
         {"en": "Mapping predicted changes in habitat suitability ... please wait",
         "no": "Beregner endrigene i habitat-egnethet ut ifra dine valg... vennligst vent "},
         {"en": "Mapping current habitat suitability ... please wait",
-        "no": "Beregner habitat-egnethet... vennligst vent"}
+        "no": "Beregner habitat-egnethet... vennligst vent"},
         
+        {"en": "Global temperatures are increasing and a warming of 2(\u00B0C) is probable within the near future. Try increasing the temperature by 2(\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?",
+        "no": "Den globale gjennomsnitsstemperatuen øker og er oppvarming på 2(\u00B0C) er et realistisk scenario allerede i den nærmeste fremtiden. Prøv å øk temperaturen med 2(\u00B0C) i kontrollpanelet og se hva som skjer. Dermed er utfordringen din: kan du motvirke noen av disse forandringene ved å endre på tettheten av beitedyr?"},
         
+         {"en": "Take 'The Challange'",
+        "no": "Ta utfordringen"},
         
+        {"en": "Annual\nprecipitation",
+        "no": "Årlig\nnedbørsmengde"},
+        {"en": "Mean summer\ntemperature",
+        "no": "Gjennomsnittlig\nsommertemperatur"},
+        {"en": "Sheep and\nreindeer density",
+        "no": "Tetthet av\nsau og reinsdyr"},
+        {"en": "Moose\ndensity",
+        "no": "Tetthet av\nelg"},
+        {"en": "Red deer\ndensity",
+        "no": "Tetthetav\nhjort"},
+        {"en": "Roe deer\ndensity",
+        "no": "Tetthet av\nrådyr"},
+        {"en": "Habitat suitability",
+        "no": "Habitat-egnethet"}
+      
+      
       
     ]
 }

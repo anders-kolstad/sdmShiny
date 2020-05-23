@@ -15,8 +15,16 @@ dashboardPage(title = "sdmShiny",
 # HEADER ####
   dashboardHeader(title = textOutput('myTitle'),
                   
-                  titleWidth = 450,
+                  titleWidth = 400,
                   
+                  tags$li(div(img(src = "logoNFRw.png",
+                                  height = "30px"),
+                              style = "padding-top:10px; padding-bottom:10px;"),
+                          class = "dropdown"),
+                  tags$li(div(img(src = "NTNUlong.png",
+                                  height = "30px"),
+                              style = "padding-top:10px; padding-bottom:10px; padding-right:10px; padding-left:10px"),
+                          class = "dropdown"),
                   dropdownMenu(type = "messages",
                   messageItem(
                     from = "AUC",
@@ -55,16 +63,25 @@ dashboardPage(title = "sdmShiny",
       theme = "onenote"
     ),
     
+    # Aligning plots to  center of boxes
     tags$head(tags$style(HTML(".grViz { width:100%!important;}"))),
+    
+    # top row (orange box)
     fluidRow(width=12, uiOutput("top")),
+    
     
     fluidRow(
       tags$style(type="text/css",
                  ".shiny-output-error { visibility: hidden; }",
                  ".shiny-output-error:before { visibility: hidden; }"),
+      
+      # First column ####
       column(width = 8,
         box(width = NULL, 
           plotOutput("map")),
+        
+        uiOutput('challenge'),
+        
         
         tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,
                tabPanel("Records",

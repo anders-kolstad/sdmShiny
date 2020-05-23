@@ -16,5 +16,4 @@ rsconnect/
 models/sdmModels/old/
 raw data/
 shiny/predictions/
-
-
+gadm36_NOR_0_sp.rds

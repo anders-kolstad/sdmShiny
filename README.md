@@ -12,10 +12,7 @@ sdmShiny
 <!-- badges: end -->
 Last update:
 
-``` r
-Sys.time()
-#> [1] "2020-05-20 12:49:56 CEST"
-```
+    #> [1] "2020-05-20 12:53:08 CEST"
 
 Follow this link to go to the Shiny application: <https://anderskolstad.shinyapps.io/sdmShiny/>
 

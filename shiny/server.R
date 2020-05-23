@@ -8,15 +8,15 @@ library(sdm)
 library(sp)
 library(raster)
 library(dismo)
-library(class)
-library(mgcv)
+#library(class)
+#library(mgcv)
 library(nlme)
 library(Matrix)
 library(earth)
 library(Formula)
 library(plotrix)
 library(rJava)
-library(Rcpp)
+#library(Rcpp)
 library(rasterVis)
 library(gridExtra)
 library(rgdal)
@@ -28,6 +28,7 @@ library(ggplot2)
 library(readr)
 library(mapview)
 library(leaflet)
+library(plyr)
 
 # Get species list ####
 myS <- list.files("sdmModels/", pattern = ".sdm")
@@ -57,12 +58,15 @@ rm(myS2, namelist, myS, myS3x, myS3)
 # IVs ####
 IV <- raster::stack("IVapp.grd")
 
+# Outline of Norway for plotting
+outline <- readRDS("outline_Norway.RData")
+
 # Occurences
 occ <- readRDS("allOccurences.RData")
 
 # Colours  ####
 cols <- colorRampPalette(c("beige", "darkgreen" ))
-cols2 <- colorRampPalette(c("red", "white", "darkgreen" ))
+cols2 <- colorRampPalette(c("red", "white", "white", "darkgreen" ))
 
 
 
@@ -123,7 +127,7 @@ shinyServer(
     IV2$moose1999        <- IV2$moose1999        * (input$moose/100 + 1)
     IV2$red_deer1999     <- IV2$red_deer1999     * (input$deer/100 + 1)
     IV2$roe_deer1999     <- IV2$roe_deer1999     * (input$roedeer/100 + 1)
-    IV2$SoilpH           <- IV2$SoilpH           +  input$ph
+    #IV2$SoilpH           <- IV2$SoilpH           +  input$ph
     IV2$temp             <- IV2$temp             + input$temperature         
     IV2$prec             <- IV2$prec             * (input$precipitation/100+1)
     return(IV2)
@@ -154,7 +158,7 @@ shinyServer(
       box(
         shinyjs::useShinyjs(),
         id = "side-panel",
-        title = i18n$t("Controls"), 
+        title = i18n$t("Control Panel"), 
         status = "primary", 
         solidHeader = TRUE,
         width = NULL,
@@ -165,9 +169,9 @@ shinyServer(
           sliderInput("precipitation", 
                       label = i18n$t("Annual precipitation (%):"),
                       min = -50, max = 50, value = c(0)),
-        sliderInput("ph", 
-                    label = i18n$t("Soil pH (in pH units):"),
-                    min = -0.6, max = 0.6, value = c(0)),
+        #sliderInput("ph", 
+        #            label = i18n$t("Soil pH (in pH units):"),
+        #            min = -0.6, max = 0.6, value = c(0)),
           conditionalPanel(
             condition = "output.cond1 == 'yes'",
           sliderInput("herbivory", 
@@ -201,7 +205,7 @@ shinyServer(
       i18n$set_translation_language(input$lan)
       box(
         width = NULL, background = "yellow",
-        i18n$t("Make changes to the climate and herbivore density variables to the right and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' at the bottom right of the page to see which variables are having the biggest effect for this species"))})
+        i18n$t("Make changes to the climate and herbivore density variables in the Control Panel and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' below to see which variables are having the biggest effect for this species. Start by playing around, or take 'the Challenge'."))})
 
     
 # Bottom banners ####    
@@ -240,12 +244,24 @@ shinyServer(
     
     # Response curves ####
      output$rcurves <- renderPlot({
+       i18n$set_translation_language(input$lan)
        
        m <- theMod()
        
-       p       <- sdm::rcurve(m, ylab="Habitategnethet\nHabitat suitability", 
+       p       <- sdm::rcurve(m, ylab=i18n$t("Habitat suitability"), 
                         xlab = "",
-                        main = "")
+                        main = "",
+                        size = 4)   # cheating a bit to hide overfitting, but also simplyfy interpretation
+       
+       p$data$variable <- plyr::revalue(p$data$variable, c(
+         prec         = i18n$t("Annual\nprecipitation"),
+         SoilpH       = i18n$t("Soil pH"),
+         temp         = i18n$t("Mean summer\ntemperature"),
+         TundraHerbivores = i18n$t("Sheep and\nreindeer density"),
+         moose1999    = i18n$t("Moose\ndensity"),
+         red_deer1999 = i18n$t("Red deer\ndensity"),
+         roe_deer1999 = i18n$t("Roe deer\ndensity")
+       ))
        # not sure how to rename the variables:
        #labs <- c("Temperature", "Precipitation", 
        #           "Soil pH", "Sheep and reindeer")
@@ -368,7 +384,6 @@ shinyServer(
     
     current <- reactive({
       i18n$set_translation_language(input$lan)
-      
       m   <- theMod()
       withProgress(message =   i18n$t("Mapping current habitat suitability ... please wait") , value = 0, {
       predict(m, IV,
@@ -406,13 +421,15 @@ shinyServer(
                                       main=i18n$t("Current\nhabitat suitability"),
                                       col.regions = cols,
                                       at=seq(0, 1,len=19),
-                                      scales=list(draw=FALSE))
+                                      scales=list(draw=FALSE))+
+                  latticeExtra::layer(sp.polygons(outline, lwd=0.1))
            p2 <- rasterVis::levelplot(diff,
                                       margin=F,
                                       main=i18n$t("Predicted change in\nhabitat suitability"),
                                       col.regions = cols2,
                                       at=seq(-1, 1,len=19),
-                                      scales=list(draw=FALSE))
+                                      scales=list(draw=FALSE))+
+             latticeExtra::layer(sp.polygons(outline, lwd=0.1))
             
            myTitle <- paste( input$species, com[grep(input$species, sci, fixed = TRUE)], sep = " | " )
            predp <- grid.arrange(p1, p2, ncol = 2, top = myTitle )   
@@ -459,6 +476,18 @@ shinyServer(
     output$prec <- renderPlot({
       raster::plot(IV$prec, main = "Annual precipitation (mm)")
     })
+    
+
+  #The Challenge ####
+    output$challenge <- renderUI({
+      i18n$set_translation_language(input$lan)
+      
+        box(title = i18n$t("Take 'The Challange'"),
+          width = NULL, collapsible = T, collapsed = F,
+                i18n$t("
+             Global temperatures are increasing and a warming of 2(\u00B0C) is probable within the near future. Try increasing the temperature by 2(\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?"))
+    })
+  
     
     observeEvent(input$reset_input, {
       shinyjs::reset("side-panel")
