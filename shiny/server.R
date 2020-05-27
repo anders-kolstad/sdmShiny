@@ -29,6 +29,8 @@ library(readr)
 library(mapview)
 library(leaflet)
 library(plyr)
+library(taxize)
+library(leafsync)
 
 # Get species list ####
 myS <- list.files("sdmModels/", pattern = ".sdm")
@@ -43,7 +45,7 @@ for(i in 1:length(myS)){
 myS3x <- unique(as.character(myS2))
 # Get norwegian names
 namelist <- readr::read_delim("Artsnavnebase_fork.csv", 
-                       "\t", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"),
+                       "\t", escape_double = FALSE, locale = readr::locale(encoding = "ISO-8859-1"),
                        trim_ws = TRUE)
 namelist$sp <- paste(namelist$Slekt, namelist$Art)
 namelist <- namelist[!duplicated(namelist$sp),]  # 13.5k names
@@ -51,23 +53,39 @@ myS3 <- data.frame(myS3 = myS3x)
 for(i in 1:nrow(myS3)){
   myS3[i,2] <-  namelist$PopulærnavnBokmål[grep(myS3x[i], namelist$sp, fixed = TRUE)]
 }
+# Manually fixing erroneous translations (see issue #8)
+myS3$V2[myS3$myS3=="Arnica montana"]      <- "solblom"
+myS3$V2[myS3$myS3=="Carex lepidocarpa"]   <- "nebbstarr"
+myS3$V2[myS3$myS3=="Lathyrus palustris"]  <- "myrflatbelg"
+myS3$V2[myS3$myS3=="Malus sylvestris"]    <- "villeple"
+myS3$V2[myS3$myS3=="Pseudorchis albida"]  <- "hvitkurle"
+myS3$V2[myS3$myS3=="Thalictrum simplex"]  <- "rankfrøstjerne"
+myS3$V2[myS3$myS3=="Thymus praecox"]      <- "kryptimian"
+
 
 sci <- as.character(myS3$myS3)
 com <- as.character(myS3$V2)
 rm(myS2, namelist, myS, myS3x, myS3)
+
 # IVs ####
 IV <- raster::stack("IVapp.grd")
 
-# Outline of Norway for plotting
-outline <- readRDS("outline_Norway.RData")
 
 # Occurences
 occ <- readRDS("allOccurences.RData")
 
 # Colours  ####
 cols <- colorRampPalette(c("beige", "darkgreen" ))
-cols2 <- colorRampPalette(c("red", "white", "white", "darkgreen" ))
+cols2 <- colorRampPalette(c("red", "yellow", "white", "white", "green", "darkgreen" ))
+pal <- colorNumeric(c("#FFFFFF", "#157300"), c(0:1), 
+                    na.color = "transparent", reverse = F)
+pal_rev <- colorNumeric(c("#FFFFFF", "#157300"), c(0:1), 
+                        na.color = "transparent", reverse = T)
 
+pal2 <- colorNumeric(c("#FF0000", "#FFFFFF", "#157300"), c(-1:1), 
+                     na.color = "transparent", reverse = F)
+pal2_rev <- colorNumeric(c("#FF0000", "#FFFFFF", "#157300"), c(-1:1), 
+                         na.color = "transparent", reverse = T)
 
 
 shinyServer(
@@ -236,7 +254,8 @@ shinyServer(
         i18n$t("This Shiny app was made by Anders Lorentzen Kolstad and James D. M. Speed, both at the NTNU Univerity Museum, Trondheim, Norway. To see where the data comes from, please visit the"), 
         a("project homepage.", href = "https://anders-kolstad.github.io/sdmShiny/"),
         i18n$t("The habitat suitability models presented here have had to be made quite simple and are therefore not the most accurate. See the following  published papers for more precise predictions:"),
-        a("Paper 1", href = "https://www.sciencedirect.com/science/article/abs/pii/S0006320716309168")
+        a("Paper 1", href = "https://www.sciencedirect.com/science/article/abs/pii/S0006320716309168"),
+        i18n$t("This work was financed by the Research Council of Norway, project ID 262064.")
         )
        })
     
@@ -270,6 +289,12 @@ shinyServer(
        print(p)
        
      })
+    
+    output$rcurcetext <- renderText({
+      i18n$set_translation_language(input$lan)
+      
+      print(i18n$t("This figure shows how the habitat suitability for your selected plant (vertical axis) changes with each of the explanatory variables (horizontal axis). The units for herbivore density is metabolic biomass (kg) per squre km. This represent the feeding requirements for the species and not the number of individuals."))  # DON'T work for some reason
+    })  # renderText
 
     
     
@@ -395,8 +420,11 @@ shinyServer(
     
     
 
-    output$map <- renderPlot({
-      i18n$set_translation_language(input$lan)
+   
+    diff <- reactive({   
+     i18n$set_translation_language(input$lan)
+      # Outline of Norway for plotting
+      outline <- readRDS("outlineNorway.RData")
       
          # -make new predictions based on user input
          IV2                  <- IV2()
@@ -416,30 +444,80 @@ shinyServer(
                           })}
                       
            diff <- pred-current()
-           p1 <- rasterVis::levelplot(current(),
-                                      margin=F,
-                                      main=i18n$t("Current\nhabitat suitability"),
-                                      col.regions = cols,
-                                      at=seq(0, 1,len=19),
-                                      scales=list(draw=FALSE))+
-                  latticeExtra::layer(sp.polygons(outline, lwd=0.1))
-           p2 <- rasterVis::levelplot(diff,
-                                      margin=F,
-                                      main=i18n$t("Predicted change in\nhabitat suitability"),
-                                      col.regions = cols2,
-                                      at=seq(-1, 1,len=19),
-                                      scales=list(draw=FALSE))+
-             latticeExtra::layer(sp.polygons(outline, lwd=0.1))
-            
-           myTitle <- paste( input$species, com[grep(input$species, sci, fixed = TRUE)], sep = " | " )
-           predp <- grid.arrange(p1, p2, ncol = 2, top = myTitle )   
-            
-           return(print(predp))
+           return(diff)
            
-    }) #renderPlot    
+    }) #diff    
   
+#  output$map <- renderPlot({
+#    p1 <- rasterVis::levelplot(current(),
+#                               margin=F,
+#                               main=i18n$t("Current\nhabitat suitability"),
+#                               col.regions = cols,
+#                               at=seq(0, 1,len=19),
+#                               scales=list(draw=FALSE))+
+#      latticeExtra::layer(sp.polygons(outline, lwd=0.1))
+#    
+#    p2 <- rasterVis::levelplot(diff(),
+#                               margin=F,
+#                               main=i18n$t("Predicted change in\nhabitat suitability"),
+#                               col.regions = cols2,
+#                               at=seq(-1, 1,len=19),
+#                               scales=list(draw=FALSE))+
+#      latticeExtra::layer(sp.polygons(outline, lwd=0.1))
+#    
+#    myTitle <- paste( input$species, com[grep(input$species, sci, fixed = TRUE)], sep = " | " )
+#    predp <- grid.arrange(p1, p2, ncol = 2, top = myTitle )   
+#    
+#    return(print(predp))
+#  })
     
+    output$map2 <- renderUI({
+      m <- leaflet() %>% 
+        addProviderTiles(providers$Stamen.TonerLite) %>%
+        addRasterImage(current(), opacity = 0.8, color = pal) %>%
+        addLegend(pal = pal_rev, values = c(0:1),
+                  title = i18n$t("Habitat suitability"),
+                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+      m2 <- leaflet() %>% 
+        addProviderTiles(providers$Stamen.TonerLite) %>%
+        addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+        addLegend(pal = pal2_rev, values = c(-1:1),
+                  title = i18n$t("Relative change"),
+                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+      
+      leafsync::sync(m, m2) # not supported yet
+    })
     
+  output$currentMap <- renderLeaflet({
+    m <- leaflet() %>% 
+      addProviderTiles(providers$Stamen.TonerLite) %>%
+      addRasterImage(current(), opacity = 0.8, color = pal) %>%
+      addLegend(pal = pal_rev, values = c(0:1),
+                title = i18n$t("Habitat suitability"),
+                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+    #m2 <- leaflet() %>% 
+    #  addProviderTiles(providers$Stamen.TonerLite) %>%
+    #  addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+    #  addLegend(pal = pal2_rev, values = c(-1:1),
+    #            title = i18n$t("Relative change"),
+    #            labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+    
+    m
+    #latticeView(m, m2)    # don't work
+    #leafsync::sync(m, m2) # not supported yet
+  })
+  
+  output$predMap <- renderLeaflet({
+    m2 <- leaflet() %>% 
+      addProviderTiles(providers$Stamen.TonerLite) %>%
+      addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+      addLegend(pal = pal2_rev, values = c(-1:1),
+                title = i18n$t("Relative change"),
+                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+    m2
+  })
+  
+  
     # Occurences ####
     output$occurenceMap <- renderLeaflet({
       dat <- occ[occ$species == theName(), ]
@@ -485,8 +563,11 @@ shinyServer(
         box(title = i18n$t("Take 'The Challange'"),
           width = NULL, collapsible = T, collapsed = F,
                 i18n$t("
-             Global temperatures are increasing and a warming of 2(\u00B0C) is probable within the near future. Try increasing the temperature by 2(\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?"))
+             Global temperatures are increasing and a warming of 2 (\u00B0C) is probable within the near future. Try increasing the temperature by 2 (\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?"))
     })
+    
+    
+    
   
     
     observeEvent(input$reset_input, {

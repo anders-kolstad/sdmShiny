@@ -71,16 +71,23 @@ dashboardPage(title = "sdmShiny",
     
     
     fluidRow(
+      # Hide error messages
       tags$style(type="text/css",
                  ".shiny-output-error { visibility: hidden; }",
                  ".shiny-output-error:before { visibility: hidden; }"),
       
       # First column ####
       column(width = 8,
-        box(width = NULL, 
-          plotOutput("map")),
+             
+            box(width = NULL,
+            uiOutput('map2')),
+            #column(width = 4,
+            #       box(width=NULL,
+            #           leafletOutput('predMap'))),
+             box(width=NULL,
+                 uiOutput('challenge')),
         
-        uiOutput('challenge'),
+                  
         
         
         tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,

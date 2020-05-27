@@ -81,6 +81,8 @@
         
         {"en": "This figure shows which variables are most important, according to this model, in determening the distribution of the selected species",
         "no": "Denne figuren viser hvilke variabler som, i følge denne modellen, er de viktigste i å forklare utbredelsen til den valgte arten"},
+         {"en": "This figure shows how the habitat suitability for your selected plant (vertical axis) changes with each of the explanatory variables (horizontal axis). The units for herbivore density is metabolic biomass (kg) per squre km. This represent the feeding requirements for the species and not the number of individuals.",
+        "no": "Denne figuren viser hvordan habitat-egnetheten for planten (vertikal akse) responderer på variasjon langs forklaringsvariablene (horisontal akse). Enheten for beietedyrene er metabolsk biomase (kg) per kvadratkilometer. Dette tallet reflekterer beitekravet til arten og ikke antall dyr direkte."},
         
         {"en": "There is no picture for this species. Enjoy this view over Muddus National Park instead",
         "no": "Vi har ikke noe bilde av denne arten. Se på dette bilde av Muddus Nationalpark i stedet."},
@@ -111,8 +113,8 @@
         {"en": "Mapping current habitat suitability ... please wait",
         "no": "Beregner habitat-egnethet... vennligst vent"},
         
-        {"en": "Global temperatures are increasing and a warming of 2(\u00B0C) is probable within the near future. Try increasing the temperature by 2(\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?",
-        "no": "Den globale gjennomsnitsstemperatuen øker og er oppvarming på 2(\u00B0C) er et realistisk scenario allerede i den nærmeste fremtiden. Prøv å øk temperaturen med 2(\u00B0C) i kontrollpanelet og se hva som skjer. Dermed er utfordringen din: kan du motvirke noen av disse forandringene ved å endre på tettheten av beitedyr?"},
+        {"en": "Global temperatures are increasing and a warming of 2 (\u00B0C) is probable within the near future. Try increasing the temperature by 2 (\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?",
+        "no": "Den globale gjennomsnitsstemperatuen øker og er oppvarming på 2 (\u00B0C) er et realistisk scenario allerede i den nærmeste fremtiden. Prøv å øk temperaturen med 2 (\u00B0C) i kontrollpanelet og se hva som skjer. Dermed er utfordringen din: kan du motvirke noen av disse forandringene ved å endre på tettheten av beitedyr?"},
         
          {"en": "Take 'The Challange'",
         "no": "Ta utfordringen"},
@@ -130,7 +132,14 @@
         {"en": "Roe deer\ndensity",
         "no": "Tetthet av\nrådyr"},
         {"en": "Habitat suitability",
-        "no": "Habitat-egnethet"}
+        "no": "Habitat-egnethet"},
+        
+        {"en":"This work was financed by the Research Council of Norway, project ID 262064.",
+        "no": "Denne arbeidet er finansiert av Forskningsrådet, prosjektnummer 262064."},
+        
+        {"en": "Relative change",
+        "no": "Relativ endring"}
+      
       
       
       

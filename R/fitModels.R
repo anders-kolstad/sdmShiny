@@ -224,7 +224,9 @@ for(i in 1:length(mySpecies)){
   }
 }
 
-
+# These models are very simple and overfitted, but it's not such a big deal for the purpuse they are intended for.
+# However, we can manually remove those that are way off by simply deleting the model object from the folder shiny/sdmModels. 
+# I'm going to do that for Stellaria hebecalyx.
 
 
 # END #### -----------------------------------------------------------------------------
