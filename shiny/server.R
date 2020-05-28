@@ -29,43 +29,15 @@ library(readr)
 library(mapview)
 library(leaflet)
 library(plyr)
-library(taxize)
 library(leafsync)
 
 # Get species list ####
-myS <- list.files("sdmModels/", pattern = ".sdm")
-myS2 <- as.list(NA)
-for(i in 1:length(myS)){
-  myS2[i] <- 
-    paste(
-      stringr::str_split(myS[i], "_")[[1]][1],
-      stringr::str_split(myS[i], "_")[[1]][2],
-      collapse = " ")
-}
-myS3x <- unique(as.character(myS2))
-# Get norwegian names
-namelist <- readr::read_delim("Artsnavnebase_fork.csv", 
-                       "\t", escape_double = FALSE, locale = readr::locale(encoding = "ISO-8859-1"),
-                       trim_ws = TRUE)
-namelist$sp <- paste(namelist$Slekt, namelist$Art)
-namelist <- namelist[!duplicated(namelist$sp),]  # 13.5k names
-myS3 <- data.frame(myS3 = myS3x)
-for(i in 1:nrow(myS3)){
-  myS3[i,2] <-  namelist$PopulærnavnBokmål[grep(myS3x[i], namelist$sp, fixed = TRUE)]
-}
-# Manually fixing erroneous translations (see issue #8)
-myS3$V2[myS3$myS3=="Arnica montana"]      <- "solblom"
-myS3$V2[myS3$myS3=="Carex lepidocarpa"]   <- "nebbstarr"
-myS3$V2[myS3$myS3=="Lathyrus palustris"]  <- "myrflatbelg"
-myS3$V2[myS3$myS3=="Malus sylvestris"]    <- "villeple"
-myS3$V2[myS3$myS3=="Pseudorchis albida"]  <- "hvitkurle"
-myS3$V2[myS3$myS3=="Thalictrum simplex"]  <- "rankfrøstjerne"
-myS3$V2[myS3$myS3=="Thymus praecox"]      <- "kryptimian"
+namelist <- readRDS('namelist.RData') # se R/vernacular.R
+namelist$sci        <- as.character(namelist$sci)       # scientific names
+namelist$vern_nor   <- as.character(namelist$vern_nor)  # norwegian names
+namelist$vern_eng   <- as.character(namelist$vern_eng)  # english names with scientific names as placeholders
+namelist$vern_eng2  <- as.character(namelist$vern_eng2) # english names
 
-
-sci <- as.character(myS3$myS3)
-com <- as.character(myS3$V2)
-rm(myS2, namelist, myS, myS3x, myS3)
 
 # IVs ####
 IV <- raster::stack("IVapp.grd")
@@ -95,15 +67,15 @@ shinyServer(
     
     output$spLanguage <- renderUI({
     i18n$set_translation_language(input$lan)
-      norVal <- c("Vitenskapelige navn", "Norske navn")
-      engVal <- c("Scientific names", "Norwegian names")
+      norVal <- c("Vitenskapelige navn", "Norske navn", "Engelske navn")
+      engVal <- c("Scientific names", "Norwegian names", "English names")
       vals <- switch(input$lan,
                      "en" = engVal,
                      "no" = norVal)
     radioButtons("spLang",
                  i18n$t("Show species by:"),
                  choiceNames = vals,
-                 choiceValues = c("sci", "com"))
+                 choiceValues = c("sci", "vern_nor", "vern_eng"))
     })
     
     
@@ -112,13 +84,14 @@ shinyServer(
       i18n$set_translation_language(input$lan)
       
       whatNames <- switch(input$spLang,
-                          "sci" = sci,
-                          "com" = com,
-                          sci)
+                          "sci"      = namelist$sci,
+                          "vern_nor" = namelist$vern_nor,
+                          "vern_eng" = namelist$vern_eng,
+                          namelist$sci)
       radioButtons("species",
                    i18n$t("Pick a species"),
                    choiceNames = whatNames,
-                   choiceValues = sci)
+                   choiceValues = namelist$sci)
     })
     
     
@@ -220,12 +193,20 @@ shinyServer(
     
 # Top banner ####    
     output$top <- renderUI({
-      i18n$set_translation_language(input$lan)
       box(
         width = NULL, background = "yellow",
         i18n$t("Make changes to the climate and herbivore density variables in the Control Panel and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' below to see which variables are having the biggest effect for this species. Start by playing around, or take 'the Challenge'."))})
 
-    
+    output$selectedSp <- renderText({
+      theSci <- input$species
+      paste(
+        theSci, 
+        namelist$vern_nor[match(theSci, namelist$sci)],
+        namelist$vern_eng2[match(theSci, namelist$sci)],
+        sep = " | "
+      )
+    })
+   
 # Bottom banners ####    
     output$credits <- renderText({
       i18n$set_translation_language(input$lan)

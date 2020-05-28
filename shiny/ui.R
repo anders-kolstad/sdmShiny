@@ -66,9 +66,16 @@ dashboardPage(title = "sdmShiny",
     # Aligning plots to  center of boxes
     tags$head(tags$style(HTML(".grViz { width:100%!important;}"))),
     
-    # top row (orange box)
-    fluidRow(width=12, uiOutput("top")),
+    # Center text
+    tags$head(tags$style(HTML("
+                                #selectedSp {
+                                  text-align: center;
+                                }"))),
     
+    # top row (orange box)
+    fluidRow( uiOutput("top")),
+    
+                 
     
     fluidRow(
       # Hide error messages
@@ -79,12 +86,12 @@ dashboardPage(title = "sdmShiny",
       # First column ####
       column(width = 8,
              
+            textOutput("selectedSp"),
+            
             box(width = NULL,
-            uiOutput('map2')),
-            #column(width = 4,
-            #       box(width=NULL,
-            #           leafletOutput('predMap'))),
-             box(width=NULL,
+             uiOutput('map2')),
+            
+            box(width=NULL,
                  uiOutput('challenge')),
         
                   
