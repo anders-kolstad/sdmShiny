@@ -49,10 +49,7 @@ dashboardPage(title = "sdmShiny",
                    "Norsk" = "no")),
     
     uiOutput('spLanguage'),
-#    radioButtons("spLang",
-#                 "List species by:",
-#                 c("Scientific names" = "sci", "Norwegian names" = "com")
-#                      ),
+
     uiOutput('spNames')
     ), # end sidebar
   
@@ -96,42 +93,43 @@ dashboardPage(title = "sdmShiny",
         
                   
         
-        
-        tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,
-               tabPanel("Records",
-                        leafletOutput('occurenceMap')),
-               tabPanel("Variable importance",
-                        plotOutput("varimp"),
-                        textOutput("varimptext")),
-               tabPanel("Response curves",
-                        imageOutput("rcurves"))),
-        box(title = 'Explanatory variables', 
-            width = NULL, 
-            collapsible = T, collapsed = T,
-            #status = "primary", 
-            #solidHeader = TRUE,
-          tabBox(width = NULL, id = 'tabset2', selected = "Temperature",
-               
-               tabPanel('Temperature',
-                        plotOutput('temp')),
-               tabPanel('Precipitation',
-                        plotOutput('prec')),
-               tabPanel('soil pH',
-                        plotOutput('SoilpH')),
-               tabPanel('Moose',
-                        plotOutput('moose1999')),
-               tabPanel('Red deer',
-                        plotOutput('red_deer1999')),
-               tabPanel('Roe deer',
-                        plotOutput('roe_deer1999')),
-               tabPanel('Sheep and reindeer',
-                        plotOutput('TundraHerbivores'))
-               )),
+            uiOutput('explore'),
+#        tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,
+#               tabPanel("Records",
+#                        leafletOutput('occurenceMap')),
+#               tabPanel("Variable importance",
+#                        plotOutput("varimp"),
+#                        textOutput("varimptext")),
+#               tabPanel("Response curves",
+#                        imageOutput("rcurves"))),
+
+          uiOutput('expvar'),
+#        box(title = 'Explanatory variables', 
+#            width = NULL, 
+#            collapsible = T, collapsed = T,
+#            #status = "primary", 
+#            #solidHeader = TRUE,
+#          tabBox(width = NULL, id = 'tabset2', selected = "Temperature",
+#               
+#               tabPanel('Temperature',
+#                        plotOutput('temp')),
+#               tabPanel('Precipitation',
+#                        plotOutput('prec')),
+#               tabPanel('soil pH',
+#                        plotOutput('SoilpH')),
+#               tabPanel('Moose',
+#                        plotOutput('moose1999')),
+#               tabPanel('Red deer',
+#                        plotOutput('red_deer1999')),
+#               tabPanel('Roe deer',
+#                        plotOutput('roe_deer1999')),
+#               tabPanel('Sheep and reindeer',
+#                        plotOutput('TundraHerbivores'))
+#               )),
                
         uiOutput("usUI")
-        #,
-        #uiOutput("credUI")
                 ),  # end of column
+
       column( width = 4,
         box(width = NULL,
          uiOutput("contr")),

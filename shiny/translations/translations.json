@@ -12,6 +12,9 @@
       {"en": "temperature",
         "no": "temperatur"},
         
+         {"en": "Temperature",
+        "no": "Temperatur"},
+        
         {"en": "Mean summer temperature (\u00B0C):",
         "no": "Gjennomsnittlig sommertemperatur (\u00B0C):"},
         
@@ -138,7 +141,35 @@
         "no": "Denne arbeidet er finansiert av Forskningsrådet, prosjektnummer 262064."},
         
         {"en": "Relative change",
-        "no": "Relativ endring"}
+        "no": "Relativ endring"},
+        
+          {"en": "Observations",
+        "no": "Observasjoner"},
+        
+       
+        
+        {"en": "Response curves",
+        "no": "Responskurver"},
+        
+        {"en": "Explanatory variables",
+        "no": "Forklaringsvariabler"},
+        
+        {"en": "Precipitation",
+        "no": "Nedbør"},
+        
+        {"en": "Moose",
+        "no": "Elg"},
+        
+        {"en": "Red deer",
+        "no": "Hjort"},
+        
+         {"en": "Roe deer",
+        "no": "Rådyr"},
+        
+         {"en": "Sheep and reindeer",
+        "no": "Sau og rein"}
+        
+        
       
       
       

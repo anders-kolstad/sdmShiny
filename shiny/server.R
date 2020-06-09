@@ -193,6 +193,7 @@ shinyServer(
     
 # Top banner ####    
     output$top <- renderUI({
+      i18n$set_translation_language(input$lan)
       box(
         width = NULL, background = "yellow",
         i18n$t("Make changes to the climate and herbivore density variables in the Control Panel and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' below to see which variables are having the biggest effect for this species. Start by playing around, or take 'the Challenge'."))})
@@ -348,6 +349,33 @@ shinyServer(
     })  # renderText
     
     
+    # Occurences ####
+    output$occurenceMap <- renderLeaflet({
+      dat <- occ[occ$species == theName(), ]
+      theMap <- mapview::mapview(dat,
+                                 layer.name = theName(),
+                                 map.types = c("Esri.WorldShadedRelief",
+                                               "Esri.WorldImagery"),
+                                 cex = 5, lwd = 0,
+                                 alpha.regions = 0.5,
+                                 col.regions = "blue")
+      theMap@map
+      
+    })
+    
+    
+    # Combine responce curces, var imp and occurences ####
+    output$explore <- renderUI({
+      i18n$set_translation_language(input$lan)
+       tabBox(width = NULL, id = 'tabset1', selected = NULL, #height = 600,
+                             tabPanel(i18n$t("Observations"),
+                                      leafletOutput('occurenceMap')),
+                             tabPanel(i18n$t("Variable importance"),
+                                      plotOutput("varimp"),
+                                      textOutput("varimptext")),
+                             tabPanel(i18n$t("Response curves"),
+                                      imageOutput("rcurves")))
+    })
     # Pictures ####
     
     output$pic <- renderImage({
@@ -499,19 +527,6 @@ shinyServer(
   })
   
   
-    # Occurences ####
-    output$occurenceMap <- renderLeaflet({
-      dat <- occ[occ$species == theName(), ]
-      theMap <- mapview::mapview(dat,
-                                 layer.name = theName(),
-                       map.types = c("Esri.WorldShadedRelief",
-                                     "Esri.WorldImagery"),
-                       cex = 5, lwd = 0,
-                       alpha.regions = 0.5,
-                       col.regions = "blue")
-      theMap@map
-      
-    })
     
     # Plot IVs ####
     output$temp <- renderPlot({
@@ -536,15 +551,38 @@ shinyServer(
       raster::plot(IV$prec, main = "Annual precipitation (mm)")
     })
     
+    output$expvar <- renderUI({
+      i18n$set_translation_language(input$lan)
+      
+      box(title = i18n$t('Explanatory variables'), 
+                      width = NULL, 
+                      collapsible = T, collapsed = T,
+                     
+                    tabBox(width = NULL, id = 'tabset2', selected = NULL,
+                         
+                         tabPanel(i18n$t('Temperature'),
+                                  plotOutput('temp')),
+                         tabPanel(i18n$t('Precipitation'),
+                                  plotOutput('prec')),
+                         tabPanel(i18n$t('Soil pH'),
+                                  plotOutput('SoilpH')),
+                         tabPanel(i18n$t('Moose'),
+                                  plotOutput('moose1999')),
+                         tabPanel(i18n$t('Red deer'),
+                                  plotOutput('red_deer1999')),
+                         tabPanel(i18n$t('Roe deer'),
+                                  plotOutput('roe_deer1999')),
+                         tabPanel(i18n$t('Sheep and reindeer'),
+                                  plotOutput('TundraHerbivores'))
+                         ))
+    })
 
   #The Challenge ####
     output$challenge <- renderUI({
       i18n$set_translation_language(input$lan)
-      
         box(title = i18n$t("Take 'The Challange'"),
           width = NULL, collapsible = T, collapsed = F,
-                i18n$t("
-             Global temperatures are increasing and a warming of 2 (\u00B0C) is probable within the near future. Try increasing the temperature by 2 (\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?"))
+                i18n$t("Global temperatures are increasing and a warming of 2 (\u00B0C) is probable within the near future. Try increasing the temperature by 2 (\u00B0C) and see what happens to the predicted habitat suitability of you selected species. Then you challenge is: can you counteract some of these changes by modifying the herbivore densities?"))
     })
     
     
