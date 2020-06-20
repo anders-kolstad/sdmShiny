@@ -60,6 +60,8 @@ pal2_rev <- colorNumeric(c("#FF0000", "#FFFFFF", "#157300"), c(-1:1),
                          na.color = "transparent", reverse = T)
 
 
+
+
 shinyServer(
   function(input, output, session) {
     
@@ -104,7 +106,7 @@ shinyServer(
     # Get model ####
   theMod <- reactive({
       myName <- theName()
-      m       <- sdm::read.sdm(paste0("sdmModels/", myName, "_3gams.sdm"))
+      m       <- sdm::read.sdm(paste0("sdmModels/", myName, "_3glms.sdm"))
       return(m)
     })
 
@@ -252,7 +254,7 @@ shinyServer(
        p       <- sdm::rcurve(m, ylab=i18n$t("Habitat suitability"), 
                         xlab = "",
                         main = "",
-                        size = 4)   # cheating a bit to hide overfitting, but also simplyfy interpretation
+                        size = 100) # defult size   
        
        p$data$variable <- plyr::revalue(p$data$variable, c(
          prec         = i18n$t("Annual\nprecipitation"),
@@ -291,7 +293,7 @@ shinyServer(
                         AUCtest = as.numeric(NA))
       varimp <- list()
       
-        d      <- read.sdm(paste0("sdmModels/", theName(), "_3gams.sdm"))
+        d      <- theMod()
         tab    <- d@run.info
         
         for(t in 1:max(tab$modelID)){
@@ -348,6 +350,17 @@ shinyServer(
       print(i18n$t("This figure shows which variables are most important, according to this model, in determening the distribution of the selected species"))  # DON'T work for some reason
     })  # renderText
     
+    output$obstext <- renderText({
+      i18n$set_translation_language(input$lan)
+      print(i18n$t("This is a map of the occurence data used to fit the model. For plants they are herbarium specimens."))  
+    })
+    
+    output$rcurvetext <- renderText({
+      i18n$set_translation_language(input$lan)
+      print(i18n$t("This figure how the habitat suitability (on the vertical axis) changes along gradients of the explanatory variables (horizontal axes)."))  
+    })  # renderText
+    
+    
     
     # Occurences ####
     output$occurenceMap <- renderLeaflet({
@@ -368,13 +381,18 @@ shinyServer(
     output$explore <- renderUI({
       i18n$set_translation_language(input$lan)
        tabBox(width = NULL, id = 'tabset1', selected = NULL, #height = 600,
-                             tabPanel(i18n$t("Observations"),
-                                      leafletOutput('occurenceMap')),
+                             
                              tabPanel(i18n$t("Variable importance"),
                                       plotOutput("varimp"),
                                       textOutput("varimptext")),
+              
+                             tabPanel(i18n$t("Observations"),
+                                      leafletOutput('occurenceMap'),
+                                      textOutput("obstext")),
+                                      
                              tabPanel(i18n$t("Response curves"),
-                                      imageOutput("rcurves")))
+                                      imageOutput("rcurves"),
+                                      textOutput("rcurvetext")))
     })
     # Pictures ####
     
@@ -402,7 +420,7 @@ shinyServer(
     # AUC ####
     output$AUC <- renderText({
       
-      m       <- read.sdm(paste0("sdmModels/", theName(), "_3gams.sdm"))
+      m       <- theMod()
       
       print(round(mean(getEvaluation(m)[,2], na.rm=T), digits = 2))
       })
@@ -457,74 +475,92 @@ shinyServer(
            
     }) #diff    
   
-#  output$map <- renderPlot({
-#    p1 <- rasterVis::levelplot(current(),
-#                               margin=F,
-#                               main=i18n$t("Current\nhabitat suitability"),
-#                               col.regions = cols,
-#                               at=seq(0, 1,len=19),
-#                               scales=list(draw=FALSE))+
-#      latticeExtra::layer(sp.polygons(outline, lwd=0.1))
-#    
-#    p2 <- rasterVis::levelplot(diff(),
-#                               margin=F,
-#                               main=i18n$t("Predicted change in\nhabitat suitability"),
-#                               col.regions = cols2,
-#                               at=seq(-1, 1,len=19),
-#                               scales=list(draw=FALSE))+
-#      latticeExtra::layer(sp.polygons(outline, lwd=0.1))
-#    
-#    myTitle <- paste( input$species, com[grep(input$species, sci, fixed = TRUE)], sep = " | " )
-#    predp <- grid.arrange(p1, p2, ncol = 2, top = myTitle )   
-#    
-#    return(print(predp))
-#  })
+
     
-    output$map2 <- renderUI({
-      m <- leaflet() %>% 
-        addProviderTiles(providers$Stamen.TonerLite) %>%
-        addRasterImage(current(), opacity = 0.8, color = pal) %>%
-        addLegend(pal = pal_rev, values = c(0:1),
-                  title = i18n$t("Habitat suitability"),
-                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
-      m2 <- leaflet() %>% 
-        addProviderTiles(providers$Stamen.TonerLite) %>%
-        addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
-        addLegend(pal = pal2_rev, values = c(-1:1),
-                  title = i18n$t("Relative change"),
-                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+# here I want to make use of leafletProxy to keep the map zzom from updating when one changes the input of the control panel:
+    #https://stackoverflow.com/questions/28393310/how-to-prevent-leaflet-map-from-resetting-zoom-in-shiny-app
+    
+#  map2 <- 
+#      leaflet() %>% 
+#      addProviderTiles(providers$Stamen.TonerLite) 
+#    
+#   observe({
+#     diff <- diff()
+#     
+#     leafletProxy('map2')%>%
+#       clearShapes() %>%
+#       addRasterImage(diff, layerId= "layer1") 
+#     #%>%
+#     #  addLegend(pal = pal2_rev, values = c(-1:1),
+#     #                            title = i18n$t("Relative change"),
+#     #                            labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+#    })
+
+   m <- reactive(
+     leaflet() %>% 
+     addProviderTiles(providers$Stamen.TonerLite) %>%
+     addRasterImage(current(), opacity = 0.8, color = pal) %>%
+     addLegend(pal = pal_rev, values = c(0:1),
+               title = i18n$t("Habitat suitability"),
+               labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+   )
+    
+   
+   m2 <- reactive(
+     leaflet() %>% 
+             addProviderTiles(providers$Stamen.TonerLite) %>%
+             addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+             addLegend(pal = pal2_rev, values = c(-1:1),
+                       title = i18n$t("Relative change"),
+                       labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+   )
+    output$mapOut <- renderUI({
       
-      leafsync::sync(m, m2) # not supported yet
+      leafsync::sync(m(), m2() )
     })
     
-  output$currentMap <- renderLeaflet({
-    m <- leaflet() %>% 
-      addProviderTiles(providers$Stamen.TonerLite) %>%
-      addRasterImage(current(), opacity = 0.8, color = pal) %>%
-      addLegend(pal = pal_rev, values = c(0:1),
-                title = i18n$t("Habitat suitability"),
-                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
-    #m2 <- leaflet() %>% 
-    #  addProviderTiles(providers$Stamen.TonerLite) %>%
-    #  addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
-    #  addLegend(pal = pal2_rev, values = c(-1:1),
-    #            title = i18n$t("Relative change"),
-    #            labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
-    
-    m
-    #latticeView(m, m2)    # don't work
-    #leafsync::sync(m, m2) # not supported yet
-  })
   
-  output$predMap <- renderLeaflet({
-    m2 <- leaflet() %>% 
-      addProviderTiles(providers$Stamen.TonerLite) %>%
-      addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
-      addLegend(pal = pal2_rev, values = c(-1:1),
-                title = i18n$t("Relative change"),
-                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
-    m2
-  })
+    
+#    output$mapOut <- renderUI({
+#      
+#      m2 <- leaflet() %>% 
+#        addProviderTiles(providers$Stamen.TonerLite) %>%
+#        addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+#        addLegend(pal = pal2_rev, values = c(-1:1),
+#                  title = i18n$t("Relative change"),
+#                  labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+#      
+#      leafsync::sync(m, m2) 
+#    })
+    
+#  output$currentMap <- renderLeaflet({
+#    m <- leaflet() %>% 
+#      addProviderTiles(providers$Stamen.TonerLite) %>%
+#      addRasterImage(current(), opacity = 0.8, color = pal) %>%
+#      addLegend(pal = pal_rev, values = c(0:1),
+#                title = i18n$t("Habitat suitability"),
+#                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+#    #m2 <- leaflet() %>% 
+#    #  addProviderTiles(providers$Stamen.TonerLite) %>%
+#    #  addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+#    #  addLegend(pal = pal2_rev, values = c(-1:1),
+#    #            title = i18n$t("Relative change"),
+#    #            labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+#    
+#    m
+#    #latticeView(m, m2)    # don't work
+#    #leafsync::sync(m, m2) # not supported yet
+#  })
+#  
+#  output$predMap <- renderLeaflet({
+#    m2 <- leaflet() %>% 
+#      addProviderTiles(providers$Stamen.TonerLite) %>%
+#      addRasterImage(diff(), opacity = 0.9, color = pal2) %>%
+#      addLegend(pal = pal2_rev, values = c(-1:1),
+#                title = i18n$t("Relative change"),
+#                labFormat = labelFormat(transform = function(x) sort(x, decreasing = TRUE)))
+#    m2
+#  })
   
   
     

@@ -32,7 +32,7 @@ dashboardPage(title = "sdmShiny",
                     icon("bullseye")),
                   messageItem(
                     from = "Method",
-                    message = "GAM",
+                    message = "mean of 3 GLM models",
                     icon("bullseye")),
                   messageItem(
                     from = "# unique samples",
@@ -86,7 +86,7 @@ dashboardPage(title = "sdmShiny",
             textOutput("selectedSp"),
             
             box(width = NULL,
-             uiOutput('map2')),
+             uiOutput('mapOut')),
             
             box(width=NULL,
                  uiOutput('challenge')),
@@ -94,38 +94,10 @@ dashboardPage(title = "sdmShiny",
                   
         
             uiOutput('explore'),
-#        tabBox(width = NULL, id = 'tabset1', selected = "Records", #height = 600,
-#               tabPanel("Records",
-#                        leafletOutput('occurenceMap')),
-#               tabPanel("Variable importance",
-#                        plotOutput("varimp"),
-#                        textOutput("varimptext")),
-#               tabPanel("Response curves",
-#                        imageOutput("rcurves"))),
+
 
           uiOutput('expvar'),
-#        box(title = 'Explanatory variables', 
-#            width = NULL, 
-#            collapsible = T, collapsed = T,
-#            #status = "primary", 
-#            #solidHeader = TRUE,
-#          tabBox(width = NULL, id = 'tabset2', selected = "Temperature",
-#               
-#               tabPanel('Temperature',
-#                        plotOutput('temp')),
-#               tabPanel('Precipitation',
-#                        plotOutput('prec')),
-#               tabPanel('soil pH',
-#                        plotOutput('SoilpH')),
-#               tabPanel('Moose',
-#                        plotOutput('moose1999')),
-#               tabPanel('Red deer',
-#                        plotOutput('red_deer1999')),
-#               tabPanel('Roe deer',
-#                        plotOutput('roe_deer1999')),
-#               tabPanel('Sheep and reindeer',
-#                        plotOutput('TundraHerbivores'))
-#               )),
+
                
         uiOutput("usUI")
                 ),  # end of column

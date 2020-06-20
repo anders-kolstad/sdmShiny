@@ -8,32 +8,35 @@
 
 # This code chunk will get us up to speed.
 library(sdm)
-source("./R/spList.R")
+
+
 myIVs      <- raster::stack('data/IV.grd')
 # removing categorical layers - they dont add much and cause trouble with NAs
 myIVs <- raster::stack(myIVs$SoilpH, myIVs$moose1999, 
                        myIVs$red_deer1999, myIVs$roe_deer1999,
                         myIVs$TundraHerbivores, myIVs$temp, myIVs$prec, myIVs$elev)
 names(myIVs)
+
+
+
 #oDat       <- readRDS('data/large/oDat.RData')   # 2 species only as in the Rdm documentation file
-# oDat       <- readRDS('data/allOccurences.RData') # All species
+oDat       <- readRDS('data/allOccurences.RData') # All species
 dim(oDat)
 oDat <- oDat[oDat$year>1989,]
 dim(oDat)
-
-#mySpecies  <- c("Primula scandinavica", "Kobresia simpliciuscula")
-
 mySpecies <- unique(oDat$species) # 132
+
+
+
+source("./R/spList.R")
 mySpecies2  <- sl(df=T)
 myAlpine <- mySpecies2$mySpList[mySpecies2$type == "alpine"]
 myForest <- mySpecies2$mySpList[mySpecies2$type == "forest"]
 myAlpine <- sub(' ', '_', myAlpine)
 myForest <- sub(' ', '_', myForest)
-
 comb <- c(as.character(myAlpine), as.character(myForest))
 (comb <- comb[which(duplicated(comb))])
 # shold these be modelled as forets plants or as alpine plants? Perhaps a combination, adding sheep and reindeer as IV
-
 
 myAlpine <- mySpecies[mySpecies %in% myAlpine]
 myAlpine <- myAlpine[!myAlpine %in% comb]
@@ -200,33 +203,59 @@ mySpeciesM <- unique(as.character(myS2))
 length(mySpeciesM) # 
 
 
-# GAM ####
-# There is  compromise between model accuracy and model object file size (need to be low to allow many species in the shinyapps bundle), I have ended up using a single method (gam, one of the most successful in trils) with 5 replicates (because gams sometimes fail, and varImp variesa lot between runs). They should  differ more when the number of observations is very low because then you could get 'unlucky' with the partitioning. 
-mySpecies2 <- mySpecies[!mySpecies %in% mySpeciesM]
-length(mySpecies2) # 85
-mySpecies <- mySpecies2
-mySpecies <- mySpecies[1:10]
-# Aphanes_australis is extremly rare
+# MODELS ####
+sdm::getmethodNames()
+# Testing to find the most appropriate method that doesn't overfit (as the GAMs did in an earlier version):
+s <- "Taxus_baccata"
+file1   <- paste0("models/sdmData/", s, "_d.sdd")
+d <- sdm::read.sdm(file1)
+
+
+tmod <- sdm::sdm(.~.,
+         data = d, 
+         methods = c('gam', 'glm', 'svm', 'rf'),
+         replication = c('boot'), n=3)  
+tmod
+# All worked
+# All where good
+# rf was best
+gui(tmod)
+# rf has more weight put on deer densities
+(c1 <- rcurve(tmod))
+# not too bad
+(c2 <- rcurve(tmod, id=1:3)) # gams - very bumpy
+(c3 <- rcurve(tmod, id=4:6)) # glms - smooth
+(c4 <- rcurve(tmod, id=7:9)) # svm - smooth
+(c5 <- rcurve(tmod, id=10:12)) # svm - odd
+
+# svm did a little better tham glm, but I'm more familiar with glm so I'll use that
+
+
+
+#mySpecies2 <- mySpecies[!mySpecies %in% mySpeciesM]
+#length(mySpecies2) # 85
+#mySpecies <- mySpecies2
+
+mySpecies <- mySpecies[11:length(mySpecies)]
+# Aphanes_australis is extremly rare, same with a few others
 for(i in 1:length(mySpecies)){
   
   s       <- mySpecies[i]
   file1   <- paste0("models/sdmData/", s, "_d.sdd")
-  obj     <- paste0(s, "_3gams")
+  obj     <- paste0(s, "_3glms")
   file2   <- paste0("shiny/sdmModels/", obj)
   d      <- sdm::read.sdm(file1)
   
   mod <- sdm::sdm(.~.,
                   data = d, 
-                  methods = c('gam'),
+                  methods = c('glm'),
                   replication = c('boot'), n=3)     
   if(any(mod@run.info$success)){
   sdm::write.sdm(mod, file2, overwrite=TRUE)
   }
 }
 
-# These models are very simple and overfitted, but it's not such a big deal for the purpuse they are intended for.
-# However, we can manually remove those that are way off by simply deleting the model object from the folder shiny/sdmModels. 
-# I'm going to do that for Stellaria hebecalyx.
+
 
 
 # END #### -----------------------------------------------------------------------------

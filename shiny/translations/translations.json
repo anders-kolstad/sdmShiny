@@ -167,7 +167,13 @@
         "no": "Rådyr"},
         
          {"en": "Sheep and reindeer",
-        "no": "Sau og rein"}
+        "no": "Sau og rein"},
+        
+          {"en": "This is a map of the occurence data used to fit the model. For plants they are herbarium specimens.",
+        "no": "Dette kartet viser faktiske observasjoner av arten som danner grunnlaget for modellen. For planter er det snakk om herbariebelegg."},
+        
+          {"en": "This figure how the habitat suitability (on the vertical axis) changes along gradients of the explanatory variables (horizontal axes).",
+        "no": "Denne figuren viser hvordan habitat-egnetheten (på den vertikal aksen) endrer seg langs gradienter av forklaringsvariablene på de horisontale aksene."}
         
         
       

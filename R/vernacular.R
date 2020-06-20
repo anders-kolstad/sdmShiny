@@ -26,8 +26,8 @@ ver2 <- ver2[!is.na(ver2)]
 ver2 <- ver2[1] # Common bugle
 
 
-# Now lets make it automatic for a lenger list if species
-myS <- list.files("sdmModels/", pattern = ".sdm")
+# Now lets make it automatic for a longer list if species
+myS <- list.files("shiny/sdmModels/", pattern = ".sdm")
 myS2 <- as.list(NA)
 for(i in 1:length(myS)){
   myS2[i] <- 
@@ -39,9 +39,11 @@ for(i in 1:length(myS)){
 myS3x <- unique(as.character(myS2))
 
 # Get norwegian names
-namelist <- readr::read_delim("Artsnavnebase_fork.csv", 
-                              "\t", escape_double = FALSE, locale = readr::locale(encoding = "ISO-8859-1"),
+namelist <- readr::read_delim("shiny/Artsnavnebase_fork.csv", 
+                              "\t", escape_double = FALSE, 
+                              locale = readr::locale(encoding = "ISO-8859-1"),
                               trim_ws = TRUE)
+
 namelist$sp <- paste(namelist$Slekt, namelist$Art)
 namelist <- namelist[!duplicated(namelist$sp),]  # 13.5k names
 myS3 <- data.frame(myS3 = myS3x)
@@ -78,7 +80,7 @@ for (i in 1:length(sci)){
 
 rm(i, s, ver, ver2)
 
-
+vern_eng2 <- vern_eng
 vern_eng[is.na(vern_eng)] <- sci[is.na(vern_eng)]
 
 #View(cbind(vern_eng, vern_eng2, sci))
@@ -86,4 +88,4 @@ vern_eng2[is.na(vern_eng2)] <- "English name missing"
 
 namelist <- data.frame(sci, vern_nor, vern_eng, vern_eng2)
 
-saveRDS(namelist, 'namelist.RData')
+saveRDS(namelist, 'shiny/namelist.RData')
