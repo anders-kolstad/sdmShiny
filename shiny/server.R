@@ -30,6 +30,7 @@ library(mapview)
 library(leaflet)
 library(plyr)
 library(leafsync)
+library(shinyWidgets)
 
 # Get species list ####
 namelist <- readRDS('namelist.RData') # se R/vernacular.R
@@ -74,10 +75,11 @@ shinyServer(
       vals <- switch(input$lan,
                      "en" = engVal,
                      "no" = norVal)
-    radioButtons("spLang",
-                 i18n$t("Show species by:"),
+    radioGroupButtons("spLang",
+                 #i18n$t("Show species by:"),
                  choiceNames = vals,
-                 choiceValues = c("sci", "vern_nor", "vern_eng"))
+                 choiceValues = c("sci", "vern_nor", "vern_eng"),
+                 direction = "vertical")
     })
     
     
@@ -90,16 +92,19 @@ shinyServer(
                           "vern_nor" = namelist$vern_nor,
                           "vern_eng" = namelist$vern_eng,
                           namelist$sci)
-      radioButtons("species",
+      pickerInput("species",
                    i18n$t("Pick a species"),
-                   choiceNames = whatNames,
-                   choiceValues = namelist$sci)
+                  choices = whatNames )
+                  #choiceNames = whatNames,
+                   #choiceValues = namelist$sci) # choiceNames and choiceValues are not options for the pickerInput
     })
     
     
     # prepare species name ####
   theName <- reactive({
-      myName <- sub(' ', '_', input$species)
+      temp <- which(namelist == input$species, arr.ind = T)
+      row <- temp[1,1]
+      myName <- sub(' ', '_', namelist$sci[row])
       return(myName)
     })
     
@@ -201,11 +206,17 @@ shinyServer(
         i18n$t("Make changes to the climate and herbivore density variables in the Control Panel and see how that affects the habitat suitability of your selected plant species. You can look at the 'variable importance' below to see which variables are having the biggest effect for this species. Start by playing around, or take 'the Challenge'."))})
 
     output$selectedSp <- renderText({
-      theSci <- input$species
+      temp <- which(namelist == input$species, arr.ind = T)
+      row <- temp[1,1]
+      #theSci <- input$species
       paste(
-        theSci, 
-        namelist$vern_nor[match(theSci, namelist$sci)],
-        namelist$vern_eng2[match(theSci, namelist$sci)],
+        #theSci, 
+        #namelist$vern_nor[match(theSci, namelist$sci)],
+        #namelist$vern_eng2[match(theSci, namelist$sci)],
+        
+        namelist$sci[row],
+        namelist$vern_nor[row],
+        namelist$vern_eng[row],
         sep = " | "
       )
     })

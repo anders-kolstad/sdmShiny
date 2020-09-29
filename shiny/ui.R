@@ -3,6 +3,7 @@
 
 library(shiny)
 library(shinyjs)
+library(shinyWidgets)
 library(shinydashboard)
 library(dashboardthemes)
 library(leaflet)
@@ -44,9 +45,11 @@ dashboardPage(title = "sdmShiny",
 # SIDEBAR ####    
   dashboardSidebar( 
     
-    radioButtons("lan", "",
-                 c("English" = "en",
-                   "Norsk" = "no")),
+    radioGroupButtons(inputId = "lan", 
+                      label = "",
+                      choices = c("English" = "en",
+                                   "Norsk" = "no")),
+                                                  
     
     uiOutput('spLanguage'),
 
