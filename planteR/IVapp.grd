@@ -1,0 +1,25 @@
+[general]
+creator=R package 'raster'
+created=2020-05-14 11:32:08
+[georeference]
+nrows=163
+ncols=112
+xmin=229758.42663586
+ymin=6395776.07720511
+xmax=1349758.42663586
+ymax=8025776.07720511
+projection=+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=8
+bandorder=BIL
+minvalue=4.44306755065918:0:0:0:0:4.13831663131714:398.699005126953:0
+maxvalue=5.78399467468262:199.907043457031:333.229919433594:162.565353393555:969.929992675781:16.2000007629395:2843.88427734375:1779.87805175781
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=SoilpH:moose1999:red_deer1999:roe_deer1999:TundraHerbivores:temp:prec:elev
